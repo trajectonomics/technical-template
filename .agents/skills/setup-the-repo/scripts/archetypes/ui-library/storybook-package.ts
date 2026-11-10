@@ -1,6 +1,7 @@
 import type { PackageJson, PlanInput } from "../../types"
 import { json } from "../shared"
 
+/** The private Storybook app files. */
 export function storybookPackage(input: PlanInput): Record<string, string> {
 	const answers = input.answers
 	const svelteName = `${answers.packageName}-svelte`

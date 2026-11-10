@@ -1,5 +1,6 @@
 import type { PlanInput } from "../../types"
 
+/** The workspace-shape and tooling-split ADRs. */
 export function uiLibraryAdrs(input: PlanInput): Record<string, string> {
 	const answers = input.answers
 	const svelteName = `${answers.packageName}-svelte`

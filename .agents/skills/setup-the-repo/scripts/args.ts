@@ -32,9 +32,9 @@ export function parseTerms(raw: readonly string[] | undefined): DomainTerm[] {
 	const terms: DomainTerm[] = []
 	for (const entry of raw ?? []) {
 		const separator = entry.indexOf("=")
-		if (separator <= 0) {
+		if (separator < 0) {
 			throw new SetupError(
-				"INVALID_TERM",
+				"MALFORMED_TERM",
 				`--term must be "Name=Definition", got "${entry}".`,
 				"term",
 			)

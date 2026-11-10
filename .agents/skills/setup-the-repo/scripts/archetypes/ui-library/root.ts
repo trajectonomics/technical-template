@@ -1,6 +1,7 @@
 import type { PackageJson, PlanInput } from "../../types"
 import { basePackage, json } from "../shared"
 
+/** AGENTS.md rule 4 for a workspace with Svelte packages. */
 export const SVELTE_RULE_4 =
 	"Bun only: `bun install`, `bun run <script>`. Do not add npm/pnpm/yarn lockfiles. " +
 	"Svelte packages run Vitest through `bun run test`, so the contributor-facing test entry point stays `bun run test`."
@@ -23,6 +24,7 @@ export function workspaceRoot(input: PlanInput): PackageJson {
 	return root
 }
 
+/** The root scripts that delegate to every workspace package. */
 export function rootScripts(): Record<string, string> {
 	return {
 		lint: "biome ci --error-on-warnings . && bun run --filter '*' lint",
@@ -37,6 +39,7 @@ export function rootScripts(): Record<string, string> {
 	}
 }
 
+/** The root Biome config: the web preset, no loose rules, Svelte files excluded. */
 export function biomeConfig(): string {
 	return json({
 		$schema: "https://biomejs.dev/schemas/2.6.3/schema.json",
@@ -61,6 +64,7 @@ export function biomeConfig(): string {
 	})
 }
 
+/** The template .gitignore plus the Svelte and Storybook output folders. */
 export function gitignore(input: PlanInput): string {
 	const original = (input.snapshot.files[".gitignore"] ?? "").replace(/\n+$/, "")
 	const lines = original.split("\n")
@@ -70,6 +74,7 @@ export function gitignore(input: PlanInput): string {
 	return `${lines.filter(Boolean).join("\n")}\n`
 }
 
+/** The README sections that list the packages and explain releasing. */
 export function uiLibraryExtras(input: PlanInput): string {
 	const answers = input.answers
 	const storybookRow = answers.storybook
@@ -91,4 +96,3 @@ files are the reference.
 `
 }
 
-/** UI component library: private workspace, pure core, Svelte package, optional Storybook. */

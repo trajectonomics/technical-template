@@ -9,43 +9,51 @@ export function coreStarter(packageName: string, name: string, placeholder: bool
  * Pure domain model for ${packageName}.
  * Invariant: All domain objects are frozen, deterministic, and free of I/O.${note} */
 
+/** One code per rule that can reject input. */
 export enum DomainErrorCode {
 	INVALID_ID = "INVALID_ID",
 	INVALID_LABEL = "INVALID_LABEL",
 }
 
+/** A rejected rule, with the caller's input path that broke it. */
 export class DomainError extends Error {
 	readonly code: DomainErrorCode
+	readonly field: string
 
-	constructor(code: DomainErrorCode, message: string) {
+	constructor(code: DomainErrorCode, field: string, message: string) {
 		super(\`[\${code}]: \${message}\`)
 		this.name = "DomainError"
 		this.code = code
+		this.field = field
 	}
 }
 
+/** Input for \`create${name}\`. */
 export interface ${name}Props {
 	readonly id: string
 	readonly label: string
 }
 
+/** A frozen \`${name}\` value. */
 export interface ${name} {
 	readonly id: string
 	readonly label: string
 }
 
+/** Creates a frozen \`${name}\`, rejecting an empty id. */
 export function create${name}(props: ${name}Props): ${name} {
 	const id = props.id.trim()
 	if (id.length === 0) {
-		throw new DomainError(DomainErrorCode.INVALID_ID, "${name} ID must be non-empty.")
+		throw new DomainError(DomainErrorCode.INVALID_ID, "id", "${name} ID must be non-empty.")
 	}
 	return Object.freeze({ id, label: props.label.trim() })
 }
 
+/** Trims a \`${name}\` label, rejecting an empty one. */
 export function format${name}Label(label: string): string {
 	const trimmed = label.trim()
 	if (trimmed.length === 0) {
-		throw new DomainError(DomainErrorCode.INVALID_LABEL, "${name} label must be non-empty.")
+		throw new DomainError(DomainErrorCode.INVALID_LABEL, "label", "${name} label must be non-empty.")
 	}
 	return trimmed
 }
@@ -66,6 +74,7 @@ describe("create${name}", () => {
 		const error = capture(() => create${name}({ id: "   ", label: "Test" }))
 		expect(error).toBeInstanceOf(DomainError)
 		expect((error as DomainError).code).toBe(DomainErrorCode.INVALID_ID)
+		expect((error as DomainError).field).toBe("id")
 	})
 })
 
@@ -77,6 +86,7 @@ describe("format${name}Label", () => {
 	it("rejects an empty label with INVALID_LABEL", () => {
 		const error = capture(() => format${name}Label("   "))
 		expect((error as DomainError).code).toBe(DomainErrorCode.INVALID_LABEL)
+		expect((error as DomainError).field).toBe("label")
 	})
 })
 

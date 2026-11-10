@@ -52,11 +52,7 @@ const RESERVED = new Set([
 	"implements",
 ])
 
-/**
- * Turns a glossary term into a PascalCase TypeScript identifier. Only ASCII
- * letters and digits survive; a result that is empty, starts with a digit, or
- * collides with a reserved or global name becomes the marked placeholder.
- */
+/** Turns a glossary term into a PascalCase identifier or the marked placeholder. */
 export function deriveStarterName(term: string): string {
 	const words = term.match(/[A-Za-z0-9]+/g) ?? []
 	const pascal = words.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join("")

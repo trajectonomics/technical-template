@@ -75,9 +75,15 @@ describe("parseSetupArgs", () => {
 
 	it("rejects a term without a definition separator", () => {
 		const error = errorOf(() => parseSetupArgs(["--term", "Invoice"], defaults))
-		expect(error?.code).toBe("INVALID_TERM")
+		expect(error?.code).toBe("MALFORMED_TERM")
 		expect(error?.field).toBe("term")
 		expect(error?.message).toMatch(/Name=Definition/)
+	})
+
+	it("rejects a term with an empty name", () => {
+		const error = errorOf(() => parseSetupArgs(["--term", "=Definition"], defaults))
+		expect(error?.code).toBe("INVALID_TERM")
+		expect(error?.field).toBe("term")
 	})
 
 	it("rejects an unknown boolean value for a flag", () => {

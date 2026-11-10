@@ -25,6 +25,7 @@ export async function getRootDir(): Promise<string> {
 	)
 }
 
+/** The origin URL, or an empty string when there is no origin. */
 export async function getGitRemoteUrl(): Promise<string> {
 	try {
 		return (await $`git remote get-url origin`.quiet().text()).trim()
@@ -33,12 +34,14 @@ export async function getGitRemoteUrl(): Promise<string> {
 	}
 }
 
+/** The current branch name, or null on a detached HEAD. */
 export async function currentBranch(): Promise<string | null> {
 	const out = await $`git rev-parse --abbrev-ref HEAD`.quiet().text()
 	const branch = out.trim()
 	return branch === "HEAD" || branch.length === 0 ? null : branch
 }
 
+/** The local branch names. */
 export async function localBranches(): Promise<string[]> {
 	const out = await $`git branch --list "--format=%(refname:short)"`.quiet().text()
 	return out

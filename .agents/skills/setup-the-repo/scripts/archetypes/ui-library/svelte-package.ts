@@ -2,6 +2,7 @@ import { toKebabCase } from "../../terms"
 import type { PackageJson, PlanInput } from "../../types"
 import { json } from "../shared"
 
+/** The Svelte package files: component, logic, tests and tooling config. */
 export function sveltePackage(input: PlanInput): Record<string, string> {
 	const answers = input.answers
 	const svelteName = `${answers.packageName}-svelte`

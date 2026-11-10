@@ -2,6 +2,7 @@ import { coreStarter } from "../../starters"
 import type { PackageJson, PlanInput } from "../../types"
 import { json } from "../shared"
 
+/** The pure core package files. */
 export function corePackage(input: PlanInput): Record<string, string> {
 	const answers = input.answers
 	const starter = coreStarter(answers.packageName, input.name, input.placeholder)

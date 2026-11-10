@@ -13,6 +13,7 @@ import {
 import { storybookPackage } from "./storybook-package"
 import { sveltePackage } from "./svelte-package"
 
+/** UI component library: private workspace, pure core, Svelte package, optional Storybook. */
 export function planUiLibrary(input: PlanInput): Plan {
 	const answers = input.answers
 	const root = workspaceRoot(input)

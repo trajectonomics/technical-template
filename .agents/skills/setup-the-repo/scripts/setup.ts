@@ -20,7 +20,7 @@ async function main(): Promise<void> {
 	const git = await readGitState()
 	const decision = decideBranch(git.currentBranch, git.branches)
 	if (decision.error) {
-		throw new SetupError("BOOTSTRAP_BRANCH_EXISTS", decision.error, "branch")
+		throw new SetupError(decision.errorCode ?? "BOOTSTRAP_BRANCH_EXISTS", decision.error, "branch")
 	}
 
 	const dirName = process.cwd().split("/").pop() ?? "my-repo"

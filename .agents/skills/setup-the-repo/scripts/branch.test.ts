@@ -7,6 +7,7 @@ describe("decideBranch", () => {
 			switchTo: BOOTSTRAP_BRANCH,
 			skipCommit: false,
 			error: null,
+			errorCode: null,
 		})
 	})
 
@@ -17,6 +18,7 @@ describe("decideBranch", () => {
 	it("refuses to start when feat/bootstrap is already taken", () => {
 		const decision = decideBranch("main", ["main", BOOTSTRAP_BRANCH])
 		expect(decision.error).toContain(BOOTSTRAP_BRANCH)
+		expect(decision.errorCode).toBe("BOOTSTRAP_BRANCH_EXISTS")
 		expect(decision.switchTo).toBeNull()
 	})
 
@@ -25,6 +27,7 @@ describe("decideBranch", () => {
 			switchTo: null,
 			skipCommit: false,
 			error: null,
+			errorCode: null,
 		})
 	})
 
@@ -33,6 +36,7 @@ describe("decideBranch", () => {
 			switchTo: null,
 			skipCommit: true,
 			error: null,
+			errorCode: null,
 		})
 	})
 })

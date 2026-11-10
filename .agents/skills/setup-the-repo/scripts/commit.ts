@@ -2,11 +2,7 @@
 export const COMMIT_SUBJECT =
 	"chore: bootstrap project from template and remove setup-the-repo skill"
 
-/**
- * Builds the bootstrap commit message. Co-author trailers are appended only
- * when the caller passed `--co-author`, so an agent's commit is attributable
- * without setup guessing who ran it.
- */
+/** The bootstrap commit message, with one trailer per co-author. */
 export function commitMessage(coAuthors: readonly string[]): string {
 	const trailers = coAuthors
 		.map((author) => author.trim())
