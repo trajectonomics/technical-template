@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import { parseSetupArgs, parseTerms } from "./args"
+import { errorOf } from "./testing"
 import { SetupError } from "./types"
 
 const defaults = {
@@ -19,10 +20,11 @@ describe("parseSetupArgs", () => {
 	})
 
 	it("rejects an unknown archetype instead of silently using core", () => {
-		expect(() => parseSetupArgs(["--archetype", "nope"], defaults)).toThrow(SetupError)
-		expect(() => parseSetupArgs(["--archetype", "nope"], defaults)).toThrow(
-			/core, cli, service, minimal, ui-library/,
-		)
+		const error = errorOf(() => parseSetupArgs(["--archetype", "nope"], defaults))
+		expect(error).toBeInstanceOf(SetupError)
+		expect(error?.code).toBe("UNKNOWN_ARCHETYPE")
+		expect(error?.field).toBe("archetype")
+		expect(error?.message).toMatch(/core, cli, service, minimal, ui-library/)
 	})
 
 	it("parses every supported archetype", () => {
@@ -38,9 +40,12 @@ describe("parseSetupArgs", () => {
 	})
 
 	it("rejects --publish true with ui-library and explains why", () => {
-		expect(() =>
+		const error = errorOf(() =>
 			parseSetupArgs(["--archetype", "ui-library", "--publish", "true"], defaults),
-		).toThrow(/shared publish workflow/)
+		)
+		expect(error?.code).toBe("PUBLISH_WORKSPACE_UNSUPPORTED")
+		expect(error?.field).toBe("publish")
+		expect(error?.message).toMatch(/shared publish workflow/)
 	})
 
 	it("accepts repeatable --term values in order", () => {
@@ -59,12 +64,26 @@ describe("parseSetupArgs", () => {
 	})
 
 	it("rejects an empty definition", () => {
-		expect(() => parseSetupArgs(["--term", "Invoice="], defaults)).toThrow(/needs a definition/)
-		expect(() => parseSetupArgs(["--term", "Invoice=   "], defaults)).toThrow(/needs a definition/)
+		const error = errorOf(() => parseSetupArgs(["--term", "Invoice="], defaults))
+		expect(error?.code).toBe("EMPTY_DEFINITION")
+		expect(error?.field).toBe("term")
+		expect(error?.message).toMatch(/needs a definition/)
+		expect(errorOf(() => parseSetupArgs(["--term", "Invoice=   "], defaults))?.code).toBe(
+			"EMPTY_DEFINITION",
+		)
 	})
 
 	it("rejects a term without a definition separator", () => {
-		expect(() => parseSetupArgs(["--term", "Invoice"], defaults)).toThrow(/Name=Definition/)
+		const error = errorOf(() => parseSetupArgs(["--term", "Invoice"], defaults))
+		expect(error?.code).toBe("INVALID_TERM")
+		expect(error?.field).toBe("term")
+		expect(error?.message).toMatch(/Name=Definition/)
+	})
+
+	it("rejects an unknown boolean value for a flag", () => {
+		const error = errorOf(() => parseSetupArgs(["--publish", "maybe"], defaults))
+		expect(error?.code).toBe("INVALID_FLAG")
+		expect(error?.field).toBe("publish")
 	})
 
 	it("reads --storybook false and ignores it for other archetypes", () => {

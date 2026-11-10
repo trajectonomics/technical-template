@@ -11,10 +11,7 @@ export interface BranchDecision {
 /** The branch setup creates so AGENTS.md rule 1 holds from the first commit. */
 export const BOOTSTRAP_BRANCH = "feat/bootstrap"
 
-/**
- * Decides whether setup may start and on which branch. `currentBranch` is null
- * on a detached HEAD; `branches` lists the local branch names.
- */
+/** Decides whether setup may start and which branch it uses. */
 export function decideBranch(
 	currentBranch: string | null,
 	branches: readonly string[],

@@ -13,10 +13,14 @@ export function starterName(answers: SetupAnswers): string {
  */
 export function buildPlan(answers: SetupAnswers, snapshot: Snapshot): Plan {
 	const name = starterName(answers)
-	return ARCHETYPE_PLANNERS[answers.archetype]({
+	const plan = ARCHETYPE_PLANNERS[answers.archetype]({
 		answers,
 		snapshot,
 		name,
 		placeholder: isPlaceholder(name),
+	})
+	return Object.freeze({
+		writes: Object.freeze({ ...plan.writes }),
+		deletes: Object.freeze([...plan.deletes]),
 	})
 }

@@ -39,7 +39,11 @@ export async function runEffects(options: {
 	if (format.exitCode !== 0) {
 		console.error(format.stdout.toString())
 		console.error(format.stderr.toString())
-		throw new SetupError("Formatting failed. Fix the error above and run setup again.")
+		throw new SetupError(
+			"FORMAT_FAILED",
+			"Formatting failed. Fix the error above and run setup again.",
+			"format",
+		)
 	}
 
 	console.log("\n🧪 Running verification suite (`bun run check`)...")
@@ -49,7 +53,9 @@ export async function runEffects(options: {
 		console.error(check.stdout.toString())
 		console.error(check.stderr.toString())
 		throw new SetupError(
+			"CHECK_FAILED",
 			"Verification failed. Self-destruction was aborted so you can inspect and fix the errors.",
+			"check",
 		)
 	}
 	console.log("   ✓ Full verification suite passed with 0 errors!")
@@ -70,7 +76,11 @@ export async function runEffects(options: {
 		if (commit.exitCode !== 0) {
 			console.error(commit.stdout.toString())
 			console.error(commit.stderr.toString())
-			throw new SetupError("The bootstrap commit failed. The files are written; commit them yourself.")
+			throw new SetupError(
+				"COMMIT_FAILED",
+				"The bootstrap commit failed. The files are written; commit them yourself.",
+				"commit",
+			)
 		}
 		console.log("   ✓ Created the bootstrap commit")
 	}

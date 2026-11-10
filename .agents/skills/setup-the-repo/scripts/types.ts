@@ -65,5 +65,29 @@ export interface PlanInput {
 	readonly placeholder: boolean
 }
 
+/** Every rejection setup can report, one code per rule. */
+export type SetupErrorCode =
+	| "UNKNOWN_ARCHETYPE"
+	| "INVALID_FLAG"
+	| "PUBLISH_WORKSPACE_UNSUPPORTED"
+	| "INVALID_TERM"
+	| "EMPTY_DEFINITION"
+	| "GIT_UNAVAILABLE"
+	| "BOOTSTRAP_BRANCH_EXISTS"
+	| "FORMAT_FAILED"
+	| "CHECK_FAILED"
+	| "COMMIT_FAILED"
+
 /** A plan error the user can fix, never a stack trace. */
-export class SetupError extends Error {}
+export class SetupError extends Error {
+	readonly code: SetupErrorCode
+	/** The caller's input path the rule rejected, when one exists. */
+	readonly field: string | null
+
+	constructor(code: SetupErrorCode, message: string, field: string | null = null) {
+		super(message)
+		this.name = "SetupError"
+		this.code = code
+		this.field = field
+	}
+}
