@@ -56,3 +56,7 @@ When creating a new repository from this template:
 1. Run `/setup-the-repo` (or `bun run setup`) to interactively configure your package coordinates, description, archetype, domain glossary, and architecture records.
 2. Next, run `/setup-matt-pocock-skills` to wire up your issue tracker and triage labels.
 3. Run `bun run check` to verify linting, types, build, and tests.
+
+## Factory Runs
+
+A Factory Run or Spec drafter (a thread titled `traj/trajectonomics/<repo>#<n>` or `triage/trajectonomics/<repo>#<n>`) takes its instructions from the Dispatcher runbook in `trajectonomics/factory`, never from this repository, where `docs/dispatcher-runbook.md` does not exist. Read it with `gh api repos/trajectonomics/factory/contents/docs/dispatcher-runbook.md -H "Accept: application/vnd.github.raw"`. If you cannot read it, stop and say so; do not build from the issue alone.
