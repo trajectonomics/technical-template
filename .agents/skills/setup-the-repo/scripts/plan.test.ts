@@ -66,6 +66,18 @@ describe("buildPlan", () => {
 		expect(plan.deletes).not.toContain(".github/workflows/release.yml")
 	})
 
+	it("writes the first-publish guide only when publishing is on", () => {
+		const publishing = buildPlan(
+			testAnswers({ archetype: "core", enablePublish: true }),
+			snapshot,
+		)
+		expect(publishing.writes["docs/publishing.md"]).toContain("# Publishing")
+
+		const off = buildPlan(testAnswers({ archetype: "core", enablePublish: false }), snapshot)
+		expect(off.writes["docs/publishing.md"]).toBeUndefined()
+		expect(off.writes["README.md"]).not.toContain("docs/publishing.md")
+	})
+
 	it("makes the service archetype private", () => {
 		const plan = buildPlan(testAnswers({ archetype: "service" }), snapshot)
 		const pkg = JSON.parse(plan.writes["package.json"] ?? "{}")
@@ -142,6 +154,20 @@ describe("ui-library plan", () => {
 
 	it("rewords AGENTS.md rule 4 for Vitest", () => {
 		expect(plan.writes["AGENTS.md"]).toContain("Vitest through `bun run test`")
+	})
+
+	it("does not collide with names the Svelte package itself exports", () => {
+		const rootTerm = buildPlan(
+			testAnswers({
+				archetype: "ui-library",
+				enablePublish: false,
+				domainTerms: [{ term: "Root", definition: "A root." }],
+			}),
+			snapshot,
+		)
+		const index = rootTerm.writes["packages/svelte/src/index.ts"] ?? ""
+		expect(index).not.toContain("Root as Root")
+		expect(index).toContain("export { Example")
 	})
 })
 

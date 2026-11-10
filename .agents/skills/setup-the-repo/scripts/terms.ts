@@ -28,6 +28,7 @@ const RESERVED = new Set([
 	"RegExp",
 	"Response",
 	"Request",
+	"Root",
 	"Bun",
 	"process",
 	"undefined",

@@ -15,6 +15,7 @@ describe("deriveStarterName", () => {
 		["2FA", "Example"],
 		["Error", "Example"],
 		["Domain Error", "Example"],
+		["Root", "Example"],
 		["税款", "Example"],
 	])("turns %p into %p", (term, expected) => {
 		expect(deriveStarterName(term)).toBe(expected)

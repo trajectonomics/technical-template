@@ -1,4 +1,5 @@
 import { glossaryContent } from "../terms"
+import { publishChecklist } from "../publish-guide"
 import type { PackageJson, PlanInput } from "../types"
 
 /** Serializes a JSON file the way Biome formats it. */
@@ -161,11 +162,19 @@ export function commonWrites(
 	parts: ReadmeParts,
 	rule4?: string,
 ): Record<string, string> {
-	return {
+	const writes: Record<string, string> = {
 		"README.md": readmeContent(input, parts),
 		"GLOSSARY.md": glossaryContent(input.answers),
 		"AGENTS.md": agentsContent(input, rule4),
 	}
+	// The skill deletes itself, so the repo must keep the first-publish guide.
+	if (input.answers.enablePublish) {
+		writes["docs/publishing.md"] = publishChecklist(
+			input.answers.packageName,
+			input.answers.repoName,
+		)
+	}
+	return writes
 }
 
 /** The template ADR that every Archetype replaces. */
