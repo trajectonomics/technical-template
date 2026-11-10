@@ -42,7 +42,8 @@ async function main(): Promise<void> {
 	if (parsed.interactive && process.stdin.isTTY) {
 		const collected = await collectAnswersInteractive()
 		if (collected === null) return
-		answers = collected
+		// --co-author works in a TTY run too: the questionnaire only owns its own fields.
+		answers = { ...collected, coAuthors: parsed.answers.coAuthors }
 	}
 
 	if (decision.skipCommit) {

@@ -20,6 +20,7 @@ interface Scenario {
 
 const SCENARIOS: readonly Scenario[] = [
 	{ name: "core", archetype: "core", args: ["--archetype", "core", "--publish", "false"] },
+	{ name: "core-publishing", archetype: "core", args: ["--archetype", "core"] },
 	{ name: "cli", archetype: "cli", args: ["--archetype", "cli"] },
 	{ name: "service", archetype: "service", args: ["--archetype", "service"] },
 	{ name: "minimal", archetype: "minimal", args: ["--archetype", "minimal"] },
