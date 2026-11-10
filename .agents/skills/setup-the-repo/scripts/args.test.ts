@@ -1,0 +1,104 @@
+import { describe, expect, it } from "bun:test"
+import { parseSetupArgs, parseTerms } from "./args"
+import { SetupError } from "./types"
+
+const defaults = {
+	repoName: "trajectonomics/default",
+	packageName: "@trajectonomics/default",
+	description: "Default description",
+}
+
+describe("parseSetupArgs", () => {
+	it("defaults to the core archetype and publishing on", () => {
+		const parsed = parseSetupArgs([], defaults)
+		expect(parsed.answers.archetype).toBe("core")
+		expect(parsed.answers.enablePublish).toBe(true)
+		expect(parsed.answers.storybook).toBe(false)
+		expect(parsed.answers.domainTerms).toEqual([])
+		expect(parsed.interactive).toBe(true)
+	})
+
+	it("rejects an unknown archetype instead of silently using core", () => {
+		expect(() => parseSetupArgs(["--archetype", "nope"], defaults)).toThrow(SetupError)
+		expect(() => parseSetupArgs(["--archetype", "nope"], defaults)).toThrow(
+			/core, cli, service, minimal, ui-library/,
+		)
+	})
+
+	it("parses every supported archetype", () => {
+		for (const archetype of ["core", "cli", "service", "minimal", "ui-library"] as const) {
+			expect(parseSetupArgs(["--archetype", archetype], defaults).answers.archetype).toBe(archetype)
+		}
+	})
+
+	it("defaults publishing off for every non-core archetype", () => {
+		for (const archetype of ["cli", "service", "minimal", "ui-library"] as const) {
+			expect(parseSetupArgs(["--archetype", archetype], defaults).answers.enablePublish).toBe(false)
+		}
+	})
+
+	it("rejects --publish true with ui-library and explains why", () => {
+		expect(() =>
+			parseSetupArgs(["--archetype", "ui-library", "--publish", "true"], defaults),
+		).toThrow(/shared publish workflow/)
+	})
+
+	it("accepts repeatable --term values in order", () => {
+		const parsed = parseSetupArgs(
+			["--term", "Invoice=A bill.", "--term", "Tax Rate=A percentage."],
+			defaults,
+		)
+		expect(parsed.answers.domainTerms).toEqual([
+			{ term: "Invoice", definition: "A bill." },
+			{ term: "Tax Rate", definition: "A percentage." },
+		])
+	})
+
+	it("invents no term when none is given", () => {
+		expect(parseSetupArgs(["--non-interactive"], defaults).answers.domainTerms).toEqual([])
+	})
+
+	it("rejects an empty definition", () => {
+		expect(() => parseSetupArgs(["--term", "Invoice="], defaults)).toThrow(/needs a definition/)
+		expect(() => parseSetupArgs(["--term", "Invoice=   "], defaults)).toThrow(/needs a definition/)
+	})
+
+	it("rejects a term without a definition separator", () => {
+		expect(() => parseSetupArgs(["--term", "Invoice"], defaults)).toThrow(/Name=Definition/)
+	})
+
+	it("reads --storybook false and ignores it for other archetypes", () => {
+		expect(
+			parseSetupArgs(["--archetype", "ui-library", "--storybook", "false"], defaults).answers
+				.storybook,
+		).toBe(false)
+		expect(parseSetupArgs(["--archetype", "ui-library"], defaults).answers.storybook).toBe(true)
+		expect(parseSetupArgs(["--archetype", "core", "--storybook", "true"], defaults).answers.storybook).toBe(false)
+	})
+
+	it("reads --co-author repeatable and --no-commit", () => {
+		const parsed = parseSetupArgs(
+			["--co-author", "Ada Lovelace <ada@example.com>", "--co-author", "Bun <bun@example.com>", "--no-commit"],
+			defaults,
+		)
+		expect(parsed.answers.coAuthors).toEqual([
+			"Ada Lovelace <ada@example.com>",
+			"Bun <bun@example.com>",
+		])
+		expect(parsed.noCommit).toBe(true)
+	})
+
+	it("forces a scripted run when --name is given", () => {
+		const parsed = parseSetupArgs(["--name", "trajectonomics/thing"], defaults)
+		expect(parsed.interactive).toBe(false)
+		expect(parsed.answers.repoName).toBe("trajectonomics/thing")
+	})
+})
+
+describe("parseTerms", () => {
+	it("splits at the first equals sign", () => {
+		expect(parseTerms(["Formula=Amount = price * quantity"])).toEqual([
+			{ term: "Formula", definition: "Amount = price * quantity" },
+		])
+	})
+})
