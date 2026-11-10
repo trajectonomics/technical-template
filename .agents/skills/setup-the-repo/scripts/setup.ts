@@ -46,6 +46,9 @@ async function main(): Promise<void> {
 		answers = { ...collected, coAuthors: parsed.answers.coAuthors }
 	}
 
+	// Build the whole plan before touching anything: a planner failure leaves the repo as it was.
+	const plan = buildPlan(answers, readSnapshot(git.rootDir))
+
 	if (decision.skipCommit) {
 		console.log("⚠️  Detached HEAD: scaffolding now, but leaving the commit to you.")
 	}
@@ -55,7 +58,6 @@ async function main(): Promise<void> {
 	}
 
 	console.log("\n⚙️  Applying project customizations...")
-	const plan = buildPlan(answers, readSnapshot(git.rootDir))
 	applyPlan(git.rootDir, plan)
 	console.log(
 		`   ✓ Planned ${Object.keys(plan.writes).length} files and ${plan.deletes.length} deletions`,

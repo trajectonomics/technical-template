@@ -92,13 +92,17 @@ describe("parseSetupArgs", () => {
 		expect(error?.field).toBe("publish")
 	})
 
-	it("reads --storybook false and ignores it for other archetypes", () => {
+	it("reads --storybook on ui-library and rejects it elsewhere", () => {
 		expect(
 			parseSetupArgs(["--archetype", "ui-library", "--storybook", "false"], defaults).answers
 				.storybook,
 		).toBe(false)
 		expect(parseSetupArgs(["--archetype", "ui-library"], defaults).answers.storybook).toBe(true)
-		expect(parseSetupArgs(["--archetype", "core", "--storybook", "true"], defaults).answers.storybook).toBe(false)
+		const error = errorOf(() =>
+			parseSetupArgs(["--archetype", "core", "--storybook", "true"], defaults),
+		)
+		expect(error?.code).toBe("INVALID_FLAG")
+		expect(error?.field).toBe("storybook")
 	})
 
 	it("reads --co-author repeatable and --no-commit", () => {

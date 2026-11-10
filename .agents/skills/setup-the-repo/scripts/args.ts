@@ -118,6 +118,13 @@ export function parseSetupArgs(argv: readonly string[], defaults: ArgDefaults): 
 	const enablePublish = requestedPublish ?? archetype === "core"
 
 	const requestedStorybook = booleanFlag(parsedValues.storybook, "storybook")
+	if (archetype !== "ui-library" && requestedStorybook !== undefined) {
+		throw new SetupError(
+			"INVALID_FLAG",
+			"--storybook only applies to the ui-library archetype.",
+			"storybook",
+		)
+	}
 	const storybook = archetype === "ui-library" && requestedStorybook !== false
 
 	const packageName = parsedValues.pkg ?? defaults.packageName
