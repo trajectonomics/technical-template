@@ -7,6 +7,9 @@ name: Release
 #   Run workflow    -> publishes a stable version (dist-tag "latest"), then creates the
 #                      tag vX.Y.Z and the GitHub release. Run it from main.
 #
+# A brand-new package fails its first run until the owner has published the first version by hand and
+# added the Trusted Publisher. The checklist is docs/publishing.md (written by setup-the-repo).
+#
 # package.json "version" is never edited by hand. bump = auto reads commit messages
 # since the last release; pick major to cut 1.0.0.
 on:
