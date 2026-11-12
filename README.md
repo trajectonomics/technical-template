@@ -10,6 +10,7 @@ The official starter repository template for technical packages, libraries, and 
 - **Dual ESM + CJS Output**: Powered by [`tsdown`](https://github.com/sxzz/tsdown) with full `.d.ts` and `.d.mts` declaration generation.
 - **Strict Verification Pipeline**: Biome linting and formatting (with strict file line ceilings and cognitive complexity limits), strict TypeScript compilation with `isolatedDeclarations`, tests via `bun test`, plus package export verification via [`publint`](https://publint.dev) and [`@arethetypeswrong/cli`](https://github.com/arethetypeswrong/arethetypeswrong).
 - **Automated Semver & Releases**: Git-tag-driven version computation (`scripts/version.ts`), automated conventional commit PR title validation, and GitHub Actions publishing workflow.
+- **The Whole CI Contract**: A new repository starts current, not with a copy of the rules. `.github/workflows/` carries all three shared callers — `ci.yml`, `pr-title.yml` and `drift.yml` — each a few lines calling a reusable workflow in [`trajectonomics/cicd`](https://github.com/trajectonomics/cicd) at `v1`. The third one is a weekly drift check that opens one issue when the `@trajectonomics/tooling` pin falls behind `latest` or the Biome config keeps rules of its own, so a stale repository is visible without comparing eight `package.json` files by hand.
 - **Domain Modeling & ADRs**: Pre-structured `GLOSSARY.md`, Architecture Decision Records (`docs/adr/`), and agent operational guides (`docs/agents/`).
 
 ---
