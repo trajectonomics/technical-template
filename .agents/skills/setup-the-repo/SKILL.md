@@ -1,6 +1,6 @@
 ---
 name: setup-the-repo
-description: "Interactive questionnaire and automated bootstrapper to customize a new repository created from trajectonomics/technical-template. Sets up package metadata, README, CI workflows, GLOSSARY, AGENTS rules, and starter code, self-destructs the setup skill, and instructs setting up Matt Pocock's skills. For packages that publish to npm, also writes a first-publish and trusted-publishing checklist."
+description: "Interactive questionnaire and automated bootstrapper to customize a new repository created from trajectonomics/technical-template. Sets up package metadata, README, CI workflows, GLOSSARY, AGENTS rules, and starter code for one of five Archetypes (core, cli, service, minimal, ui-library), or hands a project that fits none of them to the agent protocol. Self-destructs the setup skill and instructs setting up Matt Pocock's skills. For packages that publish to npm, also writes a first-publish and trusted-publishing checklist."
 disable-model-invocation: true
 ---
 
@@ -31,8 +31,18 @@ bun .agents/skills/setup-the-repo/scripts/setup.ts \
   --pkg "@trajectonomics/my-project" \
   --description "Deterministic projection engine" \
   --archetype core \
-  --publish true
+  --term "Invoice=A bill sent to a customer" \
+  --term "Tax Rate=A percentage of the amount" \
+  --publish true \
+  --co-author "Agent Name <agent@example.com>"
 ```
+
+Flags: `--archetype core|cli|service|minimal|ui-library`, `--storybook true|false`
+(`ui-library` only, default `true`), repeatable `--term "Name=Definition"`,
+`--publish true|false`, `--non-interactive`, `--no-commit`, repeatable `--co-author`, and
+`--force` (template repository only). An unknown `--archetype` is an error naming the valid
+values; `--publish true` with `ui-library` is an error explaining that the shared publish
+workflow serves one root package, not a workspace.
 
 ---
 
@@ -58,29 +68,43 @@ Ask the user the following questions concisely (with smart defaults pre-filled):
    - `[2] CLI Tool` (executable bin script with Bun/Node, command entry point, local/binary build).
    - `[3] Backend Service / Worker` (API service, Cloudflare Worker, or daemon).
    - `[4] Minimal Library` (clean starter keeping Bun, Biome, and Bun Test).
+   - `[5] UI Component Library` (private Bun workspace over `packages/*` and `apps/*`: a pure core package, a Svelte 5 package, and an optional Storybook preview; publishing is off).
+   - `[6] Other / describe your project`. The script cannot scaffold an arbitrary description and says so; the agent protocol below maps it to the nearest Archetype.
 
 3. **Domain Vocabulary**:
-   - 1-3 core ubiquitous terms and definitions to seed `GLOSSARY.md`.
+   - Any number of core ubiquitous terms and definitions to seed `GLOSSARY.md` (interactive: until a blank term; scripted: repeatable `--term "Name=Definition"`). Non-interactive without `--term` writes no invented placeholder term. The `core` starter is named from the first term (or a marked `Example` placeholder when the term cannot be an identifier).
 
 4. **CI & Release Workflow**:
-   - Enable automated npm releases on main push? (Default: `yes` for Pure Domain Library, `no` for CLI/Service).
+   - Enable automated npm releases on main push? (Default: `yes` for Pure Domain Library, `no` for CLI/Service/Minimal, not asked for UI Component Library because publishing is off.)
    - If yes, this repo publishes a package: the **Publish Setup** step (below) applies. Ask which npm
      account will do the first publish and whether the package name is already taken.
 
 #### 3. Present Plan & Confirm
 Show the user a concise summary of what will be configured:
 - Target package name and repository
-- Archetype selected
-- Files to be customized (`package.json`, `README.md`, `GLOSSARY.md`, `AGENTS.md`, `CODING_STANDARDS.md`, `docs/adr/0001-...md`, `src/index.ts`, `src/index.test.ts`, `.github/workflows/`)
+- Archetype selected, and for `ui-library` whether Storybook is included
+- Files to be customized (`package.json`, `README.md`, `GLOSSARY.md`, `AGENTS.md`, `CODING_STANDARDS.md`, `docs/adr/`, `src/` or the workspace layout, `.github/workflows/`)
+
+#### 3a. "Other" protocol
+
+When the project fits no Archetype, do this in the agent session (the script cannot):
+
+1. Restate the project in one sentence and name the nearest Archetype.
+2. Show the user the list of things you will adapt after scaffolding.
+3. Run the script with `--no-commit` and the nearest Archetype (plus `--storybook false` when a
+   UI project has no preview app). This switches off `main` without committing.
+4. Adapt the generated files, run `bun run check`, and commit once with the user's co-author trailer.
 
 #### 4. Apply Customizations
 - Update `package.json` with the new package name, description, git remote, and adjusted scripts/bin.
 - Generate project-specific `README.md` with badge links, installation guide, and scripts.
-- Seed `GLOSSARY.md` with the user's domain terms.
+- Seed `GLOSSARY.md` with every term the user gave, in every mode.
 - Update `AGENTS.md` and `CLAUDE.md` to reference the new package and repository.
-- Record initial Architecture Decision Record under `docs/adr/0001-core-architecture-decisions.md`.
-- Scaffold typed starter functions and passing unit tests in `src/index.ts` and `src/index.test.ts`.
-- Adjust `.github/workflows/` (remove `release.yml` if npm publishing is disabled).
+- Record the initial Architecture Decision Record(s) under `docs/adr/`.
+- Scaffold typed starter functions and passing unit tests in `src/` (single package) or in the
+  `ui-library` workspace: a pure core package, a Svelte package, and the optional Storybook app.
+- Adjust `.github/workflows/` (remove `release.yml` when npm publishing is disabled, which
+  `ui-library` always does).
 - If publishing is enabled, write `docs/publishing.md` (the first-publish and trusted-publishing checklist) and link it from `README.md`. The skill deletes itself, so the repo must keep this guide.
 - Remove `"setup"` script entry from `package.json`.
 
@@ -90,17 +114,25 @@ Run:
 bun install
 bun run check
 ```
-Verify that Biome (0 warnings), TypeScript (strict typecheck), tests (`bun test`), build (`tsdown`), and package lint (`publint` + `attw`) pass 100% green.
+Verify that Biome (0 warnings), TypeScript (strict typecheck), tests (`bun test` — or Vitest for the Svelte package, still started through `bun run test`), build, and package lint (`publint` + `attw`) pass 100% green. For `ui-library`, each package's checks run and the Storybook app is built.
+
+Before merging any change to setup, run `bun run verify:setup`. It copies the template into a
+throwaway directory outside any git repository, scaffolds every Archetype (including
+`ui-library` with and without Storybook), and proves a frozen install plus `bun run check` in each.
+It needs network and minutes, so it is not part of `bun run check` or CI; put its result in the
+pull request.
 
 #### 6. Self-Destruction / Skill Cleanup
 Because this is a bootstrap-only skill, remove it so the repository remains clean:
 - Delete `.agents/skills/setup-the-repo/`
 - Delete `.claude/skills/setup-the-repo` symlink
-- Commit the bootstrap changes:
+- Commit the bootstrap changes (setup does this unless `--no-commit` or the HEAD is detached):
   ```bash
   git add .
   git commit -m "chore: bootstrap project from template and remove setup-the-repo skill"
   ```
+  Repeated `--co-author "Name <email>"` values become `Co-Authored-By:` trailers. A failed commit
+  is reported and exits non-zero; it is never swallowed.
 
 #### 7. Publish Setup (only when the repo publishes a package)
 Skip this step when npm publishing is disabled. Otherwise walk the user through `docs/publishing.md`:

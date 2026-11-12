@@ -39,8 +39,9 @@
 	},
 	"scripts": {
 		"setup": "bun .agents/skills/setup-the-repo/scripts/setup.ts",
+		"verify:setup": "bun .agents/skills/setup-the-repo/scripts/verify.ts",
 		"build": "tsdown",
-		"test": "bun test",
+		"test": "bun test ./src ./scripts ./.agents/skills/setup-the-repo/scripts",
 		"typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
 		"lint": "biome ci --error-on-warnings .",
 		"format": "biome check --write .",
