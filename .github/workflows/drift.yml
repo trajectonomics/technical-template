@@ -5,14 +5,17 @@ name: Tooling drift
 # whole CI contract, so a repository made from this template starts current instead of
 # starting with a copy of the rules.
 #
+# The shape below is the caller template in trajectonomics/cicd's README, which is where
+# the schedule, the permissions pair and workflow_dispatch are specified: the schedule
+# belongs in the caller, because a reusable workflow's own schedule does not fire for the
+# repositories that call it.
+#
 #   weekly       -> one issue per repository naming a stale pin or a Biome rule of its own,
 #                   updated in place, and closed when nothing is stale
 #   Run workflow -> the same check, on demand
 #
-# The schedule belongs in the caller: a reusable workflow's own schedule does not fire for
-# the repositories that call it. GitHub turns a schedule off after 60 days without
-# repository activity, and a disabled workflow cannot be dispatched; turn it back on with
-# `gh workflow enable drift.yml`.
+# GitHub turns a schedule off after 60 days without repository activity, and a disabled
+# workflow cannot be dispatched; turn it back on with `gh workflow enable drift.yml`.
 on:
   schedule:
     - cron: "0 6 * * 1" # Mondays

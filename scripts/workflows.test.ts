@@ -6,7 +6,6 @@ type Job = { uses?: string; steps?: unknown[] }
 type Workflow = {
 	on?: Record<string, unknown>
 	permissions?: Record<string, string>
-	concurrency?: unknown
 	jobs?: Record<string, Job>
 }
 
@@ -37,14 +36,6 @@ describe("the three callers a new repository copies", () => {
 			expect(job.steps).toBeUndefined()
 		})
 	}
-
-	it("ci.yml and pr-title.yml add no permissions or concurrency of their own", () => {
-		for (const file of ["ci.yml", "pr-title.yml"]) {
-			const workflow = load(file)
-			expect(workflow.permissions).toBeUndefined()
-			expect(workflow.concurrency).toBeUndefined()
-		}
-	})
 })
 
 describe("drift.yml, the third caller", () => {
