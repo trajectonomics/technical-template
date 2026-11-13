@@ -10,12 +10,22 @@ Instructions for AI coding agents working in `trajectonomics` repositories insta
 4. Bun only: `bun install`, `bun test`, `bun run <script>`. Do not add npm/pnpm/yarn lockfiles.
 5. Done means `bun run check` passes (Biome lint with zero warnings, strict typecheck, tests, build, publint + are-the-types-wrong). `bun run format` fixes formatting and import order. Do not loosen `tsconfig.base.json` or `biome.json` to make an error go away.
 6. Never edit `version` in `package.json` (a first-publish bump is never committed) and never run `npm publish` locally, except the very first publish of a brand-new package, which the maintainer may run locally with `--provenance=false`. Merges to `main` publish alphas; a stable release is the manual Release workflow. PR titles are conventional commits (`feat:`, `fix:`, `feat!:` ...) because they decide the next version (see README "Releasing").
-7. Pi (`pi.dev`) model restriction: When running the Pi coding agent (`pi.dev`), strictly use **DeepSeek 4.1 Flash** only (e.g., `deepseek/deepseek-v4.1-flash`, `deepseek/deepseek-v4.1-flash-fast`), whether routed via Command Code GOAT (`command-code`) or OpenCode Go (`opencode`). Do not switch to or run any other models (Claude, GPT, Gemini, etc.) in Pi sessions for this repository. This rule is mechanically enforced via `.pi/settings.json`.
-
+7. Model & Pi (`pi.dev`) rules:
+   - Never use `gemini-3.8-flash` anywhere; use `gemini-4-hydrogen` instead for Antigravity tasks and reviews (and `gemini-4-argon` where configured).
+   - When running the Pi coding agent (`pi.dev`), strictly use **DeepSeek 4.1 Flash** only (e.g., `deepseek/deepseek-v4.1-flash`, `deepseek/deepseek-v4.1-flash-fast`), whether routed via Command Code GOAT (`command-code`) or OpenCode Go (`opencode`). Do not switch to or run any other models (Claude, GPT, Gemini, etc.) in Pi sessions for this repository. This rule is mechanically enforced via `.pi/settings.json`.
+8. Temporary files and scratch clones: `/tmp` is a shared, nearly full tmpfs. Never use fixed `/tmp` filenames (`mktemp` for small files; `--body-file -` for `gh` bodies) and never install `node_modules` or clone scratch repos under `/tmp`; use `~/.cache/<slug>`.
 
 ## Organisation goals
 
 The organisation's goals are in https://github.com/trajectonomics/goals, `GOALS.md`. Read them before proposing a new direction. Only the owner edits that file; never edit it.
+
+## Owner
+
+Save the owner's attention: finish everything agents can handle end-to-end (commit, push, PR, independent review, `gh pr merge` when green or told to proceed, follow-up steps) without stopping for small permission questions or `## Not done yet` lists.
+
+When unsure, consult subagents on other models (`claude-sonnet-5-5`, `gemini-4-hydrogen`, `gemini-4-argon`, `deepseek-v4.1-flash`) instead of asking the owner. Escalate to the owner only for genuinely important, hard-to-reverse, product/policy, or human-only (accounts, credentials, browser/UI) decisions.
+
+Verify live GitHub state (`gh issue view`, `gh pr view`) and CLI/API schemas before claiming something is blocked or unsupported. Keep owner replies short (lead with what only the owner must do), record durable lessons in repo instructions rather than agent memory, and settle your own T3 thread (`t3_thread_organize`, `action: "settle"`) when done and nothing waits on the owner.
 
 ## Agent skills
 
