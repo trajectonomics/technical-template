@@ -26,6 +26,7 @@ export function planCore(input: PlanInput): Plan {
 				usage: `## Getting Started\n\n\`\`\`typescript\nimport { create${input.name} } from "${answers.packageName}"\n\nconst ${input.name.charAt(0).toLowerCase() + input.name.slice(1)} = create${input.name}({ id: "1", label: "Example" })\nconsole.log(${input.name.charAt(0).toLowerCase() + input.name.slice(1)})\n\`\`\``,
 			}),
 			"package.json": json(pkg),
+			"biome.json": biomeConfig(),
 			"tsconfig.test.json": singlePackageTestTsconfig(),
 			"src/index.ts": starter.src,
 			"src/index.test.ts": starter.test,
@@ -33,4 +34,25 @@ export function planCore(input: PlanInput): Plan {
 		},
 		deletes,
 	}
+}
+
+/** The root Biome config a generated Pure Core writes: the deterministic preset, no rules of its own. */
+function biomeConfig(): string {
+	return json({
+		$schema: "https://biomejs.dev/schemas/2.6.3/schema.json",
+		root: true,
+		extends: ["@trajectonomics/tooling/configs/deterministic"],
+		vcs: { enabled: true, clientKind: "git", useIgnoreFile: true },
+		files: {
+			includes: [
+				"**",
+				"!**/dist",
+				"!**/coverage",
+				"!**/*.md",
+				"!**/skills-lock.json",
+				"!**/.agents",
+				"!**/.claude",
+			],
+		},
+	})
 }

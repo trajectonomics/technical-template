@@ -1,4 +1,6 @@
 import { describe, expect, it } from "bun:test"
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { buildPlan, starterName } from "./plan"
 import { templateSnapshot, testAnswers } from "./testing"
 import { ARCHETYPES } from "./types"
@@ -168,6 +170,25 @@ describe("ui-library plan", () => {
 		const index = rootTerm.writes["packages/svelte/src/index.ts"] ?? ""
 		expect(index).not.toContain("Root as Root")
 		expect(index).toContain("export { Example")
+	})
+})
+
+describe("archetype biome config", () => {
+	const snapshot = templateSnapshot()
+	const template = JSON.parse(readFileSync(join(process.cwd(), "biome.json"), "utf8"))
+
+	it("gives the core archetype the deterministic preset", () => {
+		const plan = buildPlan(testAnswers({ archetype: "core" }), snapshot)
+		const config = JSON.parse(plan.writes["biome.json"] ?? "{}")
+		expect(config.root).toBe(true)
+		expect(config.extends).toEqual(["@trajectonomics/tooling/configs/deterministic"])
+		expect(config.vcs).toEqual(template.vcs)
+		expect(config.files).toEqual(template.files)
+	})
+
+	it.each(["cli", "service", "minimal"] as const)("leaves %s on the inherited config", (archetype) => {
+		const plan = buildPlan(testAnswers({ archetype }), snapshot)
+		expect(plan.writes["biome.json"]).toBeUndefined()
 	})
 })
 
