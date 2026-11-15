@@ -1,5 +1,6 @@
 import type { PackageJson, PlanInput } from "../../types"
 import { json } from "../shared"
+import { starterStoryTitle } from "./visual-page"
 import { VISUAL_DEV_DEPENDENCIES, visualScripts } from "./visual-tests"
 
 /** The private Storybook app files. */
@@ -118,7 +119,7 @@ export default preview
 import ${input.name}Story from "./${input.name}Story.svelte"
 
 const meta: Meta<typeof ${input.name}Story> = {
-	title: "Components/${input.name}",
+	title: "${starterStoryTitle(input.name)}",
 	component: ${input.name}Story,
 	argTypes: {
 		label: { control: "text" },

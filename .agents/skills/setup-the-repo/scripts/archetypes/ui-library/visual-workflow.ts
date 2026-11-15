@@ -34,10 +34,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # No bun-version: the action reads packageManager from package.json, where the pin lives.
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.4.4
 
       # The Chromium build is pinned by the Playwright version, so the cache key carries it.
       - name: Read the Playwright version

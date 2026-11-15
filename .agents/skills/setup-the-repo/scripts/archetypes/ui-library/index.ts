@@ -18,8 +18,8 @@ import { visualStoryTest } from "./visual-e2e"
 import {
 	svelteRule4Visual,
 	VISUAL_BIOME_EXCLUDES,
+	VISUAL_GITIGNORE_ADDITIONS,
 	VISUAL_README_LINES,
-	visualGitignore,
 } from "./visual-housekeeping"
 import { visualHarness, visualRootScripts } from "./visual-tests"
 import { visualWorkflow } from "./visual-workflow"
@@ -57,13 +57,13 @@ export function planUiLibrary(input: PlanInput): Plan {
 				extends: "@trajectonomics/tooling/tsconfig/web.json",
 			}),
 			"biome.json": biomeConfig(visual ? VISUAL_BIOME_EXCLUDES : []),
-			".gitignore": visual ? visualGitignore(input) : gitignore(input),
+			".gitignore": visual ? gitignore(input, VISUAL_GITIGNORE_ADDITIONS) : gitignore(input),
 			...commonWrites(input, parts, visual ? svelteRule4Visual() : SVELTE_RULE_4),
 			...uiLibraryAdrs(input),
 			...corePackage(input),
 			...sveltePackage(input),
 			...(visual ? visualHarness() : {}),
-			...(visual ? visualStoryTest() : {}),
+			...(visual ? visualStoryTest(input.name) : {}),
 			...(visual ? visualWorkflow() : {}),
 			...(visual ? visualAdr() : {}),
 			...(visual ? storybookPackage(input) : {}),

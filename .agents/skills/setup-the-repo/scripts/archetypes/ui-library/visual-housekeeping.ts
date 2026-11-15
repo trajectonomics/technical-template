@@ -1,8 +1,10 @@
-import type { PlanInput } from "../../types"
-import { gitignore, SVELTE_RULE_4 } from "./root"
+import { SVELTE_RULE_4 } from "./root"
 
 /** The root Biome exclusions the harness needs: Playwright writes a report and a trace folder. */
 export const VISUAL_BIOME_EXCLUDES = ["!**/playwright-report", "!**/test-results"] as const
+
+/** The .gitignore additions the harness needs: Playwright writes two output folders. */
+export const VISUAL_GITIGNORE_ADDITIONS = ["playwright-report/", "test-results/"] as const
 
 /** The README Development lines that document both visual commands. */
 export const VISUAL_README_LINES =
@@ -17,13 +19,4 @@ export function svelteRule4Visual(): string {
 		`${SVELTE_RULE_4} Run \`bun run test:visual\` after a component change: it screenshots the ` +
 		"built Storybook against the committed baselines."
 	)
-}
-
-/** The template .gitignore plus the folders the visual harness writes. */
-export function visualGitignore(input: PlanInput): string {
-	const lines = gitignore(input).trimEnd().split("\n")
-	for (const addition of ["playwright-report/", "test-results/"]) {
-		if (!lines.includes(addition)) lines.push(addition)
-	}
-	return `${lines.filter(Boolean).join("\n")}\n`
 }

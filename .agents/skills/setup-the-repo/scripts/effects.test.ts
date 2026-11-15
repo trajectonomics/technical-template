@@ -16,14 +16,14 @@ import { buildPlan } from "./plan"
 import { templateSnapshot, testAnswers } from "./testing"
 import { ARCHETYPES } from "./types"
 
-describe("buildPlan copies", () => {
+describe("binary asset copies in a plan", () => {
 	it.each(ARCHETYPES)("defaults to an empty copies map for %s", (archetype) => {
 		const plan = buildPlan(testAnswers({ archetype, storybook: false }), templateSnapshot())
 		expect(plan.copies).toEqual({})
 	})
 })
 
-describe("removeSetupSkill", () => {
+describe("removing the bootstrap skill", () => {
 	it("removes the skill and both of its symlinks", () => {
 		const rootDir = mkdtempSync(join(tmpdir(), "remove-skill-"))
 		try {
@@ -45,7 +45,7 @@ describe("removeSetupSkill", () => {
 	})
 })
 
-describe("applyPlan", () => {
+describe("applying a setup plan", () => {
 	it("copies a planned asset byte-identically", () => {
 		const rootDir = mkdtempSync(join(tmpdir(), "apply-plan-"))
 		try {

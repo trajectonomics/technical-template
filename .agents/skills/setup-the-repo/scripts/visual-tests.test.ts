@@ -4,7 +4,7 @@ import { templateSnapshot, testAnswers } from "./testing"
 import {
 	STARTER_BASELINES,
 	VISUAL_FONT_LICENCE,
-	VISUAL_SNAPSHOT_DIR,
+	VISUAL_SNAPSHOT_APP_DIR,
 } from "./archetypes/ui-library/visual-assets"
 
 const snapshot = templateSnapshot()
@@ -41,7 +41,7 @@ describe("the ui-library visual harness", () => {
 			expect(Object.keys(copies)).toContain(`apps/storybook/e2e/fonts/${font}`)
 		}
 		for (const baseline of STARTER_BASELINES) {
-			expect(Object.keys(copies)).toContain(`${VISUAL_SNAPSHOT_DIR}/${baseline}`)
+			expect(Object.keys(copies)).toContain(`apps/storybook/${VISUAL_SNAPSHOT_APP_DIR}/${baseline}`)
 		}
 		expect(Object.keys(copies)).toHaveLength(3 + STARTER_BASELINES.length)
 	})
@@ -61,6 +61,21 @@ describe("the ui-library visual harness", () => {
 		const root = JSON.parse(plan.writes["package.json"] ?? "{}")
 		expect(root.scripts["test:visual"]).toContain("--filter '@trajectonomics/example-storybook'")
 		expect(root.scripts["test:visual:update"]).toContain("test:visual:update")
+	})
+
+	it("identifies the starter story by its exact title, never by an id prefix", () => {
+		const e2e = plan.writes["apps/storybook/e2e/visual.e2e.ts"] ?? ""
+		expect(e2e).toContain('const STARTER_TITLE = "Components/Invoice"')
+		expect(e2e).not.toContain('startsWith("components-")')
+		expect(plan.writes["apps/storybook/playwright.config.ts"]).toContain(
+			`snapshotDir: "${VISUAL_SNAPSHOT_APP_DIR}"`,
+		)
+	})
+
+	it("names each case by story title, so two stories called Default cannot collide", () => {
+		const e2e = plan.writes["apps/storybook/e2e/visual.e2e.ts"] ?? ""
+		expect(e2e).toContain("${story.title} ${story.name} in the ${theme} theme")
+		expect(e2e).toContain("test(`the ${viewportName} viewport`")
 	})
 
 	it("records the decision in ADR 0003 and amends the test-runner count", () => {

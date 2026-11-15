@@ -1,3 +1,5 @@
+import { VISUAL_SNAPSHOT_APP_DIR } from "./visual-assets"
+
 /** The devDependency the harness needs, pinned exactly like `trajectonomics/site`. */
 export const VISUAL_DEV_DEPENDENCIES: Readonly<Record<string, string>> = {
 	"@playwright/test": "1.65.0",
@@ -49,7 +51,7 @@ const config: PlaywrightTestConfig = defineConfig({
 	fullyParallel: true,
 	retries: 0,
 	reporter: process.env["CI"] ? [["list"], ["html", { open: "never" }]] : "list",
-	snapshotDir: "e2e/visual-snapshots",
+	snapshotDir: "${VISUAL_SNAPSHOT_APP_DIR}",
 	snapshotPathTemplate: "{snapshotDir}/{arg}{ext}",
 	expect: {
 		toHaveScreenshot: { animations: "disabled", caret: "hide", maxDiffPixelRatio: 0.01 },

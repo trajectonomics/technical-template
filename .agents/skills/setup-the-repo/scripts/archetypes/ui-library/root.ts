@@ -65,11 +65,11 @@ export function biomeConfig(excludes: readonly string[] = []): string {
 	})
 }
 
-/** The template .gitignore plus the Svelte and Storybook output folders. */
-export function gitignore(input: PlanInput): string {
+/** The template .gitignore plus the Svelte, Storybook and caller-chosen output folders. */
+export function gitignore(input: PlanInput, additions: readonly string[] = []): string {
 	const original = (input.snapshot.files[".gitignore"] ?? "").replace(/\n+$/, "")
 	const lines = original.split("\n")
-	for (const addition of [".svelte-kit/", ".svelte-check/", "storybook-static/"]) {
+	for (const addition of [".svelte-kit/", ".svelte-check/", "storybook-static/", ...additions]) {
 		if (!lines.includes(addition)) lines.push(addition)
 	}
 	return `${lines.filter(Boolean).join("\n")}\n`
