@@ -40,7 +40,7 @@ export function rootScripts(): Record<string, string> {
 }
 
 /** The root Biome config: the web preset, no loose rules, Svelte files excluded. */
-export function biomeConfig(): string {
+export function biomeConfig(excludes: readonly string[] = []): string {
 	return json({
 		$schema: "https://biomejs.dev/schemas/2.6.3/schema.json",
 		root: true,
@@ -59,6 +59,7 @@ export function biomeConfig(): string {
 				"!**/storybook-static",
 				"!**/.agents",
 				"!**/.claude",
+				...excludes,
 			],
 		},
 	})

@@ -1,5 +1,6 @@
 import type { PackageJson, PlanInput } from "../../types"
 import { json } from "../shared"
+import { VISUAL_DEV_DEPENDENCIES, visualScripts } from "./visual-tests"
 
 /** The private Storybook app files. */
 export function storybookPackage(input: PlanInput): Record<string, string> {
@@ -17,6 +18,7 @@ export function storybookPackage(input: PlanInput): Record<string, string> {
 			"format:svelte":
 				'prettier --plugin prettier-plugin-svelte --write --no-error-on-unmatched-pattern "src/**/*.svelte"',
 			lint: 'biome ci --error-on-warnings . && prettier --plugin prettier-plugin-svelte --check --no-error-on-unmatched-pattern "src/**/*.svelte"',
+			...visualScripts(),
 		},
 		dependencies: { [answers.packageName]: "workspace:*", [svelteName]: "workspace:*" },
 		devDependencies: {
@@ -31,6 +33,7 @@ export function storybookPackage(input: PlanInput): Record<string, string> {
 			"svelte-check": "^4.7.8",
 			typescript: "~6.0.3",
 			vite: "^8.3.6",
+			...VISUAL_DEV_DEPENDENCIES,
 		},
 	}
 	return {
@@ -53,13 +56,20 @@ export default {
 			extends: "../../tsconfig.base.json",
 			compilerOptions: {
 				lib: ["ES2022", "DOM", "DOM.Iterable"],
-				types: ["vite/client"],
+				types: ["vite/client", "bun"],
 				paths: {
 					[answers.packageName]: ["../../packages/core/src/index.ts"],
 					[svelteName]: ["../../packages/svelte/src/index.ts"],
 				},
 			},
-			include: [".storybook/**/*.ts", "src/**/*.ts", "src/**/*.svelte"],
+			include: [
+				".storybook/**/*.ts",
+				"src/**/*.ts",
+				"src/**/*.svelte",
+				"e2e/**/*.ts",
+				"playwright.config.ts",
+				"scripts/**/*.ts",
+			],
 		}),
 		"apps/storybook/.storybook/main.ts": `import type { StorybookConfig } from "@storybook/svelte-vite"
 import { svelte } from "@sveltejs/vite-plugin-svelte"
