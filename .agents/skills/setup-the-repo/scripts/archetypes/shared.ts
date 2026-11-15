@@ -35,6 +35,8 @@ export interface ReadmeParts {
 	readonly extra?: string
 	/** The command a contributor runs for the package tests. */
 	readonly testCommand?: string
+	/** Extra Development lines, such as the visual regression commands. */
+	readonly visualLines?: string
 }
 
 /** The README the generated repository keeps. */
@@ -72,7 +74,7 @@ bun run check
 
 # Run tests
 ${testCommand}
-
+${parts.visualLines ?? ""}
 # Code formatting & lint
 bun run format
 bun run lint

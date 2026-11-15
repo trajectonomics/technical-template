@@ -30,6 +30,8 @@ export interface Snapshot {
 /** A complete description of the files setup will change. */
 export interface Plan {
 	readonly writes: Readonly<Record<string, string>>
+	/** Binary assets to copy, keyed by destination path; each value is relative to the template root. */
+	readonly copies?: Readonly<Record<string, string>>
 	readonly deletes: readonly string[]
 }
 

@@ -40,7 +40,7 @@ export function rootScripts(): Record<string, string> {
 }
 
 /** The root Biome config: the web preset, no loose rules, Svelte files excluded. */
-export function biomeConfig(): string {
+export function biomeConfig(excludes: readonly string[] = []): string {
 	return json({
 		$schema: "https://biomejs.dev/schemas/2.6.3/schema.json",
 		root: true,
@@ -59,16 +59,17 @@ export function biomeConfig(): string {
 				"!**/storybook-static",
 				"!**/.agents",
 				"!**/.claude",
+				...excludes,
 			],
 		},
 	})
 }
 
-/** The template .gitignore plus the Svelte and Storybook output folders. */
-export function gitignore(input: PlanInput): string {
+/** The template .gitignore plus the Svelte, Storybook and caller-chosen output folders. */
+export function gitignore(input: PlanInput, additions: readonly string[] = []): string {
 	const original = (input.snapshot.files[".gitignore"] ?? "").replace(/\n+$/, "")
 	const lines = original.split("\n")
-	for (const addition of [".svelte-kit/", ".svelte-check/", "storybook-static/"]) {
+	for (const addition of [".svelte-kit/", ".svelte-check/", "storybook-static/", ...additions]) {
 		if (!lines.includes(addition)) lines.push(addition)
 	}
 	return `${lines.filter(Boolean).join("\n")}\n`
