@@ -18,6 +18,7 @@ export function buildPlan(answers: SetupAnswers, snapshot: Snapshot): Plan {
 	})
 	return Object.freeze({
 		writes: Object.freeze({ ...plan.writes }),
+		copies: Object.freeze({ ...plan.copies }),
 		deletes: Object.freeze([...plan.deletes]),
 	})
 }
