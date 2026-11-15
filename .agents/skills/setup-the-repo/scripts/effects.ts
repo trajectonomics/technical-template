@@ -16,9 +16,12 @@ export function applyPlan(rootDir: string, plan: Plan): void {
 	for (const path of plan.deletes) rmSync(join(rootDir, path), { force: true })
 }
 
-/** Removes the single-use skill and its Claude Code symlink. */
+/** Removes the single-use skill and its Claude Code and Mistral Vibe symlinks. */
 export function removeSetupSkill(rootDir: string): void {
-	rmSync(join(rootDir, ".claude/skills/setup-the-repo"), { force: true })
+	// A symlink left behind points at a removed directory, and Biome fails the check on it.
+	for (const path of [".claude/skills/setup-the-repo", ".vibe/skills/setup-the-repo"]) {
+		rmSync(join(rootDir, path), { force: true })
+	}
 	rmSync(join(rootDir, ".agents/skills/setup-the-repo"), { recursive: true, force: true })
 }
 
