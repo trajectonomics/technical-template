@@ -1,5 +1,5 @@
 import type { Plan, PlanInput } from "../../types"
-import { commonWrites, json, TEMPLATE_ADR } from "../shared"
+import { commonWrites, json, SETUP_VERIFY_WORKFLOW, TEMPLATE_ADR } from "../shared"
 import { uiLibraryAdrs } from "./adrs"
 import { corePackage } from "./core-package"
 import {
@@ -40,6 +40,7 @@ export function planUiLibrary(input: PlanInput): Plan {
 	}
 	const deletes = [
 		TEMPLATE_ADR,
+		SETUP_VERIFY_WORKFLOW,
 		".github/workflows/release.yml",
 		"src/index.ts",
 		"src/index.test.ts",

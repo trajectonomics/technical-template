@@ -5,12 +5,15 @@
  * git, runs setup non-interactively, then proves a frozen install and a clean
  * `bun run check` on the result.
  *
- * It needs network and minutes, so it is not part of `bun run check` or CI.
- * Run it before merging any change to setup and put the result in the pull request.
+ * It needs network and minutes, so it is not part of `bun run check`.
+ * `.github/workflows/verify-setup.yml` runs it in CI on the pull requests that can change a
+ * scaffold, and again after such a change merges to main; run it by hand for anything that
+ * workflow's path filter does not cover.
  */
 import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs"
 import { basename, join } from "node:path"
 import { homedir } from "node:os"
+import { SETUP_VERIFY_WORKFLOW } from "./archetypes/shared"
 
 interface Scenario {
 	readonly name: string
@@ -93,8 +96,11 @@ function scaffold(scenario: Scenario, source: string, base: string): string {
 	if (branchOf(dir) !== "feat/bootstrap") {
 		throw new Error(`Expected branch feat/bootstrap, got ${branchOf(dir)}`)
 	}
-	if (existsSync(join(dir, ".agents/skills/setup-the-repo"))) {
-		throw new Error("setup did not remove .agents/skills/setup-the-repo")
+	// The template-only workflow proves this skill, so a scaffold must not carry it.
+	for (const path of [".agents/skills/setup-the-repo", SETUP_VERIFY_WORKFLOW]) {
+		if (existsSync(join(dir, path))) {
+			throw new Error(`setup did not remove ${path}`)
+		}
 	}
 	run(["bun", "install", "--frozen-lockfile"], dir, LONG)
 	run(["bun", "run", "check"], dir, LONG)

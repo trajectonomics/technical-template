@@ -4,6 +4,7 @@ import {
 	basePackage,
 	commonWrites,
 	json,
+	SETUP_VERIFY_WORKFLOW,
 	singlePackageAdr,
 	singlePackageTestTsconfig,
 	TEMPLATE_ADR,
@@ -25,7 +26,7 @@ export function planCli(input: PlanInput): Plan {
 		pkg.private = true
 	}
 	const starter = cliStarter(answers.packageName)
-	const deletes = [TEMPLATE_ADR]
+	const deletes = [TEMPLATE_ADR, SETUP_VERIFY_WORKFLOW]
 	if (!answers.enablePublish) deletes.push(".github/workflows/release.yml")
 
 	return {

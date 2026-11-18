@@ -4,6 +4,7 @@ import {
 	basePackage,
 	commonWrites,
 	json,
+	SETUP_VERIFY_WORKFLOW,
 	singlePackageAdr,
 	singlePackageTestTsconfig,
 	TEMPLATE_ADR,
@@ -16,7 +17,7 @@ export function planCore(input: PlanInput): Plan {
 	if (!answers.enablePublish) delete pkg.publishConfig
 	if (pkg.scripts) pkg.scripts["test"] = "bun test"
 	const starter = coreStarter(answers.packageName, input.name, input.placeholder)
-	const deletes = [TEMPLATE_ADR]
+	const deletes = [TEMPLATE_ADR, SETUP_VERIFY_WORKFLOW]
 	if (!answers.enablePublish) deletes.push(".github/workflows/release.yml")
 
 	return {

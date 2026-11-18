@@ -5,6 +5,7 @@ import {
 	basePackage,
 	commonWrites,
 	json,
+	SETUP_VERIFY_WORKFLOW,
 	singlePackageAdr,
 	singlePackageTestTsconfig,
 	TEMPLATE_ADR,
@@ -32,6 +33,6 @@ export function planService(input: PlanInput): Plan {
 			"src/index.test.ts": starter.test,
 			"docs/adr/0001-core-architecture-decisions.md": singlePackageAdr(input),
 		},
-		deletes: [TEMPLATE_ADR, ".github/workflows/release.yml"],
+		deletes: [TEMPLATE_ADR, SETUP_VERIFY_WORKFLOW, ".github/workflows/release.yml"],
 	}
 }
