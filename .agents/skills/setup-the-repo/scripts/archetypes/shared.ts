@@ -101,10 +101,10 @@ ${publishLine}---
 const CHECKLIST_HEADING = "## Checklist When Instantiating a New Repo"
 
 /** The failure for a template text the generator rewrites but no longer finds. */
-function templateDrift(anchor: string): SetupError {
+function templateDrift(reason: string): SetupError {
 	return new SetupError(
 		"TEMPLATE_AGENTS_DRIFT",
-		`The template's AGENTS.md no longer contains ${anchor}, so the generated file cannot be built from it.`,
+		`The template's AGENTS.md and the setup generator are out of step: ${reason}. Update the generator in .agents/skills/setup-the-repo to match the template.`,
 	)
 }
 
@@ -122,7 +122,7 @@ function replaceTemplate(
 /** Puts the repository answers where the checklist was, keeping every section below it. */
 function replaceChecklist(content: string, answers: SetupAnswers): string {
 	const start = content.indexOf(CHECKLIST_HEADING)
-	if (start < 0) throw templateDrift("the setup checklist")
+	if (start < 0) throw templateDrift("it no longer carries the setup checklist")
 	const next = content.indexOf("\n## ", start)
 	const end = next < 0 ? content.length : next + 1
 	const information = `## Repository Information\n\n- Repository: https://github.com/${answers.repoName}\n- Package: \`${answers.packageName}\`\n\n`
@@ -133,19 +133,24 @@ function replaceChecklist(content: string, answers: SetupAnswers): string {
 export function agentsContent(input: PlanInput, rule4?: string): string {
 	const answers = input.answers
 	const original = input.snapshot.files["AGENTS.md"]
-	if (!original) throw templateDrift("the AGENTS.md file")
+	if (!original) {
+		throw new SetupError(
+			"TEMPLATE_AGENTS_DRIFT",
+			"The template snapshot has no AGENTS.md, so setup cannot build the generated file.",
+		)
+	}
 	let content = replaceTemplate(
 		original,
 		/Instructions for AI coding agents working in `[^`]*` repositories instantiated from this template\./,
 		`Instructions for AI coding agents in \`${answers.repoName}\` (\`${answers.packageName}\`).`,
-		"the intro line",
+		"it no longer carries the intro line",
 	)
 	if (rule4) {
 		content = replaceTemplate(
 			content,
 			/4\. Bun only: `bun install`, `bun test`, `bun run <script>`\. Do not add npm\/pnpm\/yarn lockfiles\./,
 			`4. ${rule4}`,
-			"rule 4",
+			"it no longer carries rule 4",
 		)
 	}
 	// Setup deletes the skill and its script, so the generated file must not name them.
@@ -153,7 +158,7 @@ export function agentsContent(input: PlanInput, rule4?: string): string {
 		content,
 		/^- \*\*Bootstrap Skill \(`setup-the-repo`\)\*\*: .*\n/m,
 		"",
-		"the bootstrap bullet",
+		"it no longer carries the bootstrap bullet",
 	)
 	return replaceChecklist(content, answers)
 }
