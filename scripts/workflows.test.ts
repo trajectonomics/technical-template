@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 type Job = { uses?: string; steps?: unknown[] }
@@ -9,7 +9,8 @@ type Workflow = {
 	jobs?: Record<string, Job>
 }
 
-const WORKFLOWS = join(import.meta.dir, "..", ".github", "workflows")
+const ROOT = join(import.meta.dir, "..")
+const WORKFLOWS = join(ROOT, ".github", "workflows")
 
 function load(file: string): Workflow {
 	return Bun.YAML.parse(readFileSync(join(WORKFLOWS, file), "utf8")) as Workflow
@@ -36,6 +37,22 @@ describe("the three callers a new repository copies", () => {
 			expect(job.steps).toBeUndefined()
 		})
 	}
+})
+
+describe("the release calculator lives in trajectonomics/cicd only", () => {
+	for (const file of ["scripts/version.ts", "scripts/version.test.ts"]) {
+		it(`keeps no copy of ${file}`, () => {
+			expect(existsSync(join(ROOT, file))).toBe(false)
+		})
+	}
+
+	it("calls the shared publish workflow, when release.yml is present", () => {
+		// service and every publishing-off Archetype delete release.yml, so it is absent there.
+		if (!existsSync(join(WORKFLOWS, "release.yml"))) return
+		const job = soleJob(load("release.yml"))
+		expect(job.uses).toBe("trajectonomics/cicd/.github/workflows/publish.yml@v1")
+		expect(job.steps).toBeUndefined()
+	})
 })
 
 describe("drift.yml, the third caller", () => {

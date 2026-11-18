@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { buildPlan, starterName } from "./plan"
 import { templateSnapshot, testAnswers } from "./testing"
@@ -17,6 +17,16 @@ describe("buildPlan", () => {
 		expect(plan.writes["docs/adr/0001-template-architecture-decisions.md"]).toBeUndefined()
 		expect(plan.deletes).toContain("docs/adr/0001-template-architecture-decisions.md")
 		expect(plan.writes["GLOSSARY.md"]).toContain("### Invoice")
+	})
+
+	it.each(ARCHETYPES)("deletes only files the template ships for %s", (archetype) => {
+		// A delete for a missing file silently succeeds (`rmSync` runs with `force`), so a
+		// list naming what the template does not ship is a rule that cannot fail.
+		const plan = buildPlan(
+			testAnswers({ archetype, enablePublish: false, storybook: true }),
+			snapshot,
+		)
+		for (const path of plan.deletes) expect(existsSync(join(process.cwd(), path))).toBe(true)
 	})
 
 	it.each(ARCHETYPES)("does not mention Entity for %s unless the term is Entity", (archetype) => {
@@ -141,8 +151,6 @@ describe("ui-library plan", () => {
 			"tsdown.config.ts",
 			"tsconfig.json",
 			"tsconfig.test.json",
-			"scripts/version.ts",
-			"scripts/version.test.ts",
 			".github/workflows/release.yml",
 		]) {
 			expect(plan.deletes).toContain(path)
