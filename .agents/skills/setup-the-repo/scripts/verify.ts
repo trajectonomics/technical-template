@@ -10,7 +10,7 @@
  * scaffold, and again after such a change merges to main; run it by hand for anything that
  * workflow's path filter does not cover.
  */
-import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs"
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs"
 import { basename, join } from "node:path"
 import { homedir } from "node:os"
 import { SETUP_VERIFY_WORKFLOW } from "./archetypes/shared"
@@ -19,12 +19,14 @@ interface Scenario {
 	readonly name: string
 	readonly archetype: string
 	readonly args: readonly string[]
+	/** The extra proof a scenario needs beyond a clean `bun run check`. */
+	readonly verify?: (dir: string) => void
 }
 
 const SCENARIOS: readonly Scenario[] = [
 	{ name: "core", archetype: "core", args: ["--archetype", "core", "--publish", "false"] },
 	{ name: "core-publishing", archetype: "core", args: ["--archetype", "core"] },
-	{ name: "cli", archetype: "cli", args: ["--archetype", "cli"] },
+	{ name: "cli", archetype: "cli", args: ["--archetype", "cli"], verify: verifyCliBin },
 	{ name: "service", archetype: "service", args: ["--archetype", "service"] },
 	{ name: "minimal", archetype: "minimal", args: ["--archetype", "minimal"] },
 	{ name: "ui-library", archetype: "ui-library", args: ["--archetype", "ui-library"] },
@@ -37,6 +39,7 @@ const SCENARIOS: readonly Scenario[] = [
 
 const SKIP = new Set(["node_modules", ".git", "dist", "coverage", "storybook-static", ".scratch"])
 const LONG = 15 * 60 * 1000
+const SHORT = 60 * 1000
 
 function run(cmd: readonly string[], cwd: string, timeoutMs = LONG): string {
 	const result = Bun.spawnSync({
@@ -60,6 +63,30 @@ function templateRoot(): string {
 
 function branchOf(cwd: string): string {
 	return run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd)
+}
+
+/**
+ * Proves the installed command runs: the file `bin` names exists, is executable, and answers
+ * `--help` and `--version` under both runtimes the generated package claims.
+ */
+function verifyCliBin(dir: string): void {
+	const pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) as {
+		bin?: Record<string, string>
+	}
+	const target = Object.values(pkg.bin ?? {})[0]
+	if (target === undefined) throw new Error("the generated package.json has no bin entry")
+	if (!existsSync(join(dir, target))) throw new Error(`bin names ${target}, which was not emitted`)
+	if ((statSync(join(dir, target)).mode & 0o111) === 0) {
+		throw new Error(`${target} is not executable`)
+	}
+	for (const runtime of ["node", "bun"]) {
+		const help = run([runtime, target, "--help"], dir, SHORT)
+		if (!help.includes("Usage:")) throw new Error(`${runtime} ${target} --help printed no usage text`)
+		const version = run([runtime, target, "--version"], dir, SHORT)
+		if (!/^\d+\.\d+\.\d+/m.test(version)) {
+			throw new Error(`${runtime} ${target} --version printed no version string: ${version}`)
+		}
+	}
 }
 
 function scaffold(scenario: Scenario, source: string, base: string): string {
@@ -121,6 +148,7 @@ function main(): void {
 			const started = Date.now()
 			try {
 				scaffold(scenario, source, base)
+				scenario.verify?.(join(base, scenario.name))
 				const seconds = ((Date.now() - started) / 1000).toFixed(1)
 				console.log(`✓ ${scenario.name} (${seconds}s)`)
 			} catch (error) {

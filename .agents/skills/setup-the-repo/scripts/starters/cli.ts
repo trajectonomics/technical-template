@@ -3,9 +3,8 @@ import type { Starter } from "./types"
 /** The CLI starter: argv parsing, help, version and one command. */
 export function cliStarter(packageName: string): Starter {
 	const binName = packageName.split("/").pop() ?? "cli"
-	const src = `#!/usr/bin/env node
-/**
- * CLI entrypoint for ${packageName}.
+	const src = `/**
+ * Command-line interface for ${packageName}.
  */
 
 export interface ParsedCliArgs {
@@ -35,10 +34,15 @@ export function runCli(argv: readonly string[]): number {
 	console.log(\`Executed: \${args.command}\`)
 	return 0
 }
+`
+	const bin = `#!/usr/bin/env node
+/**
+ * Executable entry for ${packageName}: the process owns the exit code, the
+ * library module only parses arguments.
+ */
+import { runCli } from "./index"
 
-if (import.meta.main) {
-	process.exit(runCli(process.argv.slice(2)))
-}
+process.exit(runCli(process.argv.slice(2)))
 `
 	const test = `import { describe, expect, it } from "bun:test"
 import { parseCliArgs, runCli } from "./index"
@@ -58,7 +62,18 @@ describe("CLI Parser", () => {
 		expect(runCli(["--version"])).toBe(0)
 		expect(runCli(["--help"])).toBe(0)
 	})
+
+	it("prints help from the executable entry", () => {
+		const result = Bun.spawnSync({
+			cmd: [process.execPath, import.meta.dir + "/bin.ts", "--help"],
+			timeout: 20_000,
+			stdout: "pipe",
+			stderr: "pipe",
+		})
+		expect(result.exitCode).toBe(0)
+		expect(result.stdout.toString()).toContain("Usage: ${binName} [command] [options]")
+	})
 })
 `
-	return { src, test }
+	return { src, test, bin }
 }

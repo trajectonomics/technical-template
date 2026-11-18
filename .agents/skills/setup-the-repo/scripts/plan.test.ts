@@ -29,6 +29,14 @@ describe("buildPlan", () => {
 		}
 	})
 
+	it.each(["core", "service", "minimal"] as const)(
+		"leaves the template's single-entry build configuration for %s",
+		(archetype) => {
+			const plan = buildPlan(testAnswers({ archetype }), snapshot)
+			expect(plan.writes["tsdown.config.ts"]).toBeUndefined()
+		},
+	)
+
 	it("keeps Entity when the user's first term is Entity", () => {
 		const plan = buildPlan(
 			testAnswers({
@@ -56,9 +64,27 @@ describe("buildPlan", () => {
 			snapshot,
 		)
 		const pkg = JSON.parse(plan.writes["package.json"] ?? "{}")
-		expect(pkg.bin).toEqual({ tool: "./dist/index.cjs" })
+		expect(pkg.bin).toEqual({ tool: "./dist/bin.cjs" })
+		expect(pkg.scripts.dev).toBe("bun run src/bin.ts")
 		expect(pkg.private).toBe(true)
 		expect(plan.deletes).toContain(".github/workflows/release.yml")
+	})
+
+	it("builds both the cli library and the executable entry", () => {
+		const plan = buildPlan(testAnswers({ archetype: "cli" }), snapshot)
+		const config = plan.writes["tsdown.config.ts"] ?? ""
+		expect(config).toContain('entry: ["src/index.ts", "src/bin.ts"]')
+		expect(config).toContain("defineConfig")
+	})
+
+	it("puts the shebang and the process exit in the cli entry, never in the library", () => {
+		const plan = buildPlan(testAnswers({ archetype: "cli" }), snapshot)
+		const entry = plan.writes["src/bin.ts"] ?? ""
+		const library = plan.writes["src/index.ts"] ?? ""
+		expect(entry.startsWith("#!/usr/bin/env node\n")).toBe(true)
+		expect(entry).toContain("runCli(process.argv.slice(2))")
+		expect(library).not.toContain("#!/usr/bin/env node")
+		expect(library).not.toContain("import.meta.main")
 	})
 
 	it("keeps publishing when the core archetype publishes", () => {
