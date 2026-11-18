@@ -10,15 +10,7 @@
  * scaffold, and again after such a change merges to main; run it by hand for anything that
  * workflow's path filter does not cover.
  */
-import {
-	cpSync,
-	existsSync,
-	mkdirSync,
-	mkdtempSync,
-	readFileSync,
-	rmSync,
-	statSync,
-} from "node:fs"
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs"
 import { basename, join } from "node:path"
 import { homedir } from "node:os"
 import { SETUP_VERIFY_WORKFLOW } from "./archetypes/shared"
@@ -73,20 +65,9 @@ function branchOf(cwd: string): string {
 	return run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd)
 }
 
-/**
- * Proves the applied AGENTS.md still tells an agent where a Factory Run reads its instructions,
- * and no longer names the skill setup just deleted.
- */
-function verifyAgentsMd(dir: string): void {
-	const agents = readFileSync(join(dir, "AGENTS.md"), "utf8")
-	const rule = "gh api repos/trajectonomics/factory/contents/docs/dispatcher-runbook.md"
-	if (!agents.includes("## Factory Runs") || !agents.includes(rule)) {
-		throw new Error("the generated AGENTS.md lost the Factory Runs rule and its runbook command")
-	}
-	if (agents.includes("/setup-the-repo")) {
-		throw new Error("the generated AGENTS.md still names the deleted setup-the-repo skill")
-	}
-}
+/** The instruction a generated AGENTS.md must keep: where a Factory Run reads its runbook. */
+const FACTORY_RUNS_COMMAND =
+	"gh api repos/trajectonomics/factory/contents/docs/dispatcher-runbook.md"
 
 /**
  * Proves the installed command runs: the file `bin` names exists, is executable, and answers
@@ -152,6 +133,14 @@ function scaffold(scenario: Scenario, source: string, base: string): string {
 			throw new Error(`setup did not remove ${path}`)
 		}
 	}
+	// A generated AGENTS.md must still say where a Factory Run reads its instructions.
+	const agents = readFileSync(join(dir, "AGENTS.md"), "utf8")
+	if (!agents.includes("## Factory Runs") || !agents.includes(FACTORY_RUNS_COMMAND)) {
+		throw new Error("the generated AGENTS.md lost the Factory Runs rule and its runbook command")
+	}
+	if (agents.includes("/setup-the-repo")) {
+		throw new Error("the generated AGENTS.md still names the deleted setup-the-repo skill")
+	}
 	run(["bun", "install", "--frozen-lockfile"], dir, LONG)
 	run(["bun", "run", "check"], dir, LONG)
 	return dir
@@ -170,9 +159,8 @@ function main(): void {
 		for (const scenario of SCENARIOS) {
 			const started = Date.now()
 			try {
-				const dir = scaffold(scenario, source, base)
-				verifyAgentsMd(dir)
-				scenario.verify?.(dir)
+				scaffold(scenario, source, base)
+				scenario.verify?.(join(base, scenario.name))
 				const seconds = ((Date.now() - started) / 1000).toFixed(1)
 				console.log(`✓ ${scenario.name} (${seconds}s)`)
 			} catch (error) {

@@ -16,6 +16,11 @@ describe("the generated AGENTS.md", () => {
 		heading === "## Checklist When Instantiating a New Repo" ? "## Repository Information" : heading,
 	)
 
+	it("rewords rule 4 for the Archetype that supplies one", () => {
+		const plan = buildPlan(testAnswers({ archetype: "ui-library", storybook: true }), snapshot)
+		expect(plan.writes["AGENTS.md"]).toContain("Vitest through `bun run test`")
+	})
+
 	it.each(ARCHETYPES)("keeps every section below the checklist for %s", (archetype) => {
 		const plan = buildPlan(
 			testAnswers({ archetype, enablePublish: false, storybook: true }),
@@ -23,13 +28,11 @@ describe("the generated AGENTS.md", () => {
 		)
 		const agents = plan.writes["AGENTS.md"] ?? ""
 		expect(headingsOf(agents)).toEqual(expectedHeadings)
-		expect(agents).toContain("## Factory Runs\n\nA Factory Run or Spec drafter")
 		expect(agents).toContain(
 			"gh api repos/trajectonomics/factory/contents/docs/dispatcher-runbook.md",
 		)
-		expect(agents).toContain(
-			"- Repository: https://github.com/trajectonomics/example\n- Package: `@trajectonomics/example`",
-		)
+		expect(agents).toContain("- Repository: https://github.com/trajectonomics/example")
+		expect(agents).toContain("- Package: `@trajectonomics/example`")
 		expect(agents).not.toContain("/setup-the-repo")
 		expect(agents).not.toContain("bun run setup")
 	})

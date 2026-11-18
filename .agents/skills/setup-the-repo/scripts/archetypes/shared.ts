@@ -100,11 +100,11 @@ ${publishLine}---
 /** The heading that marks the template's single-use setup checklist. */
 const CHECKLIST_HEADING = "## Checklist When Instantiating a New Repo"
 
-/** The failure for a template text the generator rewrites but no longer finds. */
+/** The failure for a template AGENTS.md and the generator that rewrites it drifting apart. */
 function templateDrift(reason: string): SetupError {
 	return new SetupError(
 		"TEMPLATE_AGENTS_DRIFT",
-		`The template's AGENTS.md and the setup generator are out of step: ${reason}. Update the generator in .agents/skills/setup-the-repo to match the template.`,
+		`The template's AGENTS.md and the setup generator are out of step, so the generated file cannot be built: ${reason}. Make the template and .agents/skills/setup-the-repo agree again.`,
 	)
 }
 
@@ -133,12 +133,7 @@ function replaceChecklist(content: string, answers: SetupAnswers): string {
 export function agentsContent(input: PlanInput, rule4?: string): string {
 	const answers = input.answers
 	const original = input.snapshot.files["AGENTS.md"]
-	if (!original) {
-		throw new SetupError(
-			"TEMPLATE_AGENTS_DRIFT",
-			"The template snapshot has no AGENTS.md, so setup cannot build the generated file.",
-		)
-	}
+	if (!original) throw templateDrift("the template snapshot has no AGENTS.md")
 	let content = replaceTemplate(
 		original,
 		/Instructions for AI coding agents working in `[^`]*` repositories instantiated from this template\./,
