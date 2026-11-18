@@ -10,7 +10,15 @@
  * scaffold, and again after such a change merges to main; run it by hand for anything that
  * workflow's path filter does not cover.
  */
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs"
+import {
+	cpSync,
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	statSync,
+} from "node:fs"
 import { basename, join } from "node:path"
 import { homedir } from "node:os"
 import { SETUP_VERIFY_WORKFLOW } from "./archetypes/shared"
@@ -63,6 +71,21 @@ function templateRoot(): string {
 
 function branchOf(cwd: string): string {
 	return run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd)
+}
+
+/**
+ * Proves the applied AGENTS.md still tells an agent where a Factory Run reads its instructions,
+ * and no longer names the skill setup just deleted.
+ */
+function verifyAgentsMd(dir: string): void {
+	const agents = readFileSync(join(dir, "AGENTS.md"), "utf8")
+	const rule = "gh api repos/trajectonomics/factory/contents/docs/dispatcher-runbook.md"
+	if (!agents.includes("## Factory Runs") || !agents.includes(rule)) {
+		throw new Error("the generated AGENTS.md lost the Factory Runs rule and its runbook command")
+	}
+	if (agents.includes("/setup-the-repo")) {
+		throw new Error("the generated AGENTS.md still names the deleted setup-the-repo skill")
+	}
 }
 
 /**
@@ -147,8 +170,9 @@ function main(): void {
 		for (const scenario of SCENARIOS) {
 			const started = Date.now()
 			try {
-				scaffold(scenario, source, base)
-				scenario.verify?.(join(base, scenario.name))
+				const dir = scaffold(scenario, source, base)
+				verifyAgentsMd(dir)
+				scenario.verify?.(dir)
 				const seconds = ((Date.now() - started) / 1000).toFixed(1)
 				console.log(`✓ ${scenario.name} (${seconds}s)`)
 			} catch (error) {

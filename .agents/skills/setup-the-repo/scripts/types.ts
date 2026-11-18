@@ -80,6 +80,8 @@ export type SetupErrorCode =
 	| "FORMAT_FAILED"
 	| "CHECK_FAILED"
 	| "COMMIT_FAILED"
+	/** The template's AGENTS.md no longer says what the generator rewrites. */
+	| "TEMPLATE_AGENTS_DRIFT"
 
 /** A plan error the user can fix, never a stack trace. */
 export class SetupError extends Error {
