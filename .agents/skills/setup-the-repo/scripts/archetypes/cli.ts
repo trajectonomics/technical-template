@@ -15,10 +15,10 @@ export function planCli(input: PlanInput): Plan {
 	const answers = input.answers
 	const pkg = basePackage(input)
 	const binName = answers.packageName.split("/").pop() ?? "cli"
-	pkg.bin = { [binName]: "./dist/index.cjs" }
+	pkg.bin = { [binName]: "./dist/bin.cjs" }
 	if (pkg.scripts) {
 		pkg.scripts["build"] = "tsdown"
-		pkg.scripts["dev"] = "bun run src/index.ts"
+		pkg.scripts["dev"] = "bun run src/bin.ts"
 		pkg.scripts["test"] = "bun test"
 	}
 	if (!answers.enablePublish) {
@@ -38,13 +38,27 @@ export function planCli(input: PlanInput): Plan {
 			"package.json": json(pkg),
 			"tsconfig.json": runtimeTsconfig(input),
 			"tsconfig.test.json": singlePackageTestTsconfig(),
+			"tsdown.config.ts": CLI_BUILD_CONFIG,
 			"src/index.ts": starter.src,
 			"src/index.test.ts": starter.test,
+			...(starter.bin === undefined ? {} : { "src/bin.ts": starter.bin }),
 			"docs/adr/0001-core-architecture-decisions.md": singlePackageAdr(input),
 		},
 		deletes,
 	}
 }
+
+/** The build configuration a CLI scaffold needs: the library module and its entry. */
+const CLI_BUILD_CONFIG = `import { defineConfig } from "tsdown"
+
+export default defineConfig({
+	entry: ["src/index.ts", "src/bin.ts"],
+	format: ["esm", "cjs"],
+	dts: true,
+	clean: true,
+	sourcemap: true,
+})
+`
 
 /** Adds the Bun runtime types the CLI and service starters need. */
 export function runtimeTsconfig(input: PlanInput): string {
