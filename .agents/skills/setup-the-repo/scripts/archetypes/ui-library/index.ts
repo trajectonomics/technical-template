@@ -47,8 +47,6 @@ export function planUiLibrary(input: PlanInput): Plan {
 		"tsdown.config.ts",
 		"tsconfig.json",
 		"tsconfig.test.json",
-		"scripts/version.ts",
-		"scripts/version.test.ts",
 	]
 
 	return {
