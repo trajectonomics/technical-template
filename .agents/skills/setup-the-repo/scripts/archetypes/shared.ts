@@ -108,14 +108,14 @@ function templateDrift(reason: string): SetupError {
 	)
 }
 
-/** Replaces one template text, or fails naming the anchor that vanished. */
+/** Replaces one template text, or fails saying what the template lost. */
 function replaceTemplate(
 	content: string,
 	pattern: RegExp,
 	replacement: string,
-	anchor: string,
+	reason: string,
 ): string {
-	if (!pattern.test(content)) throw templateDrift(anchor)
+	if (!pattern.test(content)) throw templateDrift(reason)
 	return content.replace(pattern, () => replacement)
 }
 
