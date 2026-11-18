@@ -116,11 +116,12 @@ bun run check
 ```
 Verify that Biome (0 warnings), TypeScript (strict typecheck), tests (`bun test` — or Vitest for the Svelte package, still started through `bun run test`), build, and package lint (`publint` + `attw`) pass 100% green. For `ui-library`, each package's checks run and the Storybook app is built.
 
-Before merging any change to setup, run `bun run verify:setup`. It copies the template into a
-throwaway directory outside any git repository, scaffolds every Archetype (including
-`ui-library` with and without Storybook), and proves a frozen install plus `bun run check` in each.
-It needs network and minutes, so it is not part of `bun run check` or CI; put its result in the
-pull request.
+`bun run verify:setup` copies the template into a throwaway directory outside any git repository,
+scaffolds every Archetype (including `ui-library` with and without Storybook), and proves a frozen
+install plus `bun run check` in each. It needs network and minutes, so it is not part of
+`bun run check`; `.github/workflows/verify-setup.yml` runs it in CI on the pull requests that can
+change a scaffold, and again after such a change merges to `main`. Setup deletes that workflow from
+every generated repository. Run it by hand for a change the workflow's path filter does not cover.
 
 #### 6. Self-Destruction / Skill Cleanup
 Because this is a bootstrap-only skill, remove it so the repository remains clean:

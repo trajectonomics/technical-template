@@ -1,0 +1,74 @@
+name: Verify setup
+
+# Template-only, never a shared trajectonomics/cicd workflow: this gate proves the bootstrap skill
+# still produces a working repository, which only this repository has. Every Archetype planner
+# deletes it, because a generated repository keeps neither the script nor the skill it drives.
+#
+# The run is `bun run verify:setup`: copy the template into a throwaway directory, scaffold every
+# Archetype (including ui-library with and without Storybook), then a frozen install and
+# `bun run check` inside each result. It needs network and minutes, so it stays out of the shared
+# check and stays out of `bun run check`.
+#
+#   pull request  -> any file a scaffold keeps and one of its checks reads: a change there can
+#                    break every repository generated after it, and nothing else notices
+#   push to main  -> the same files, because a check is not required here, so a red pull request
+#                    can still merge; the run on main reports the copy the next instantiation takes
+#   Run workflow  -> the same run, on demand
+#
+# The path list is deliberate: docs, LICENSE, the shared callers and the other skills are never
+# read by a scaffold's checks, so a change to them never pays for the run.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".agents/skills/setup-the-repo/**"
+      - ".github/workflows/verify-setup.yml"
+      - "package.json"
+      - "bun.lock"
+      - "tsconfig*.json"
+      - "tsdown.config.ts"
+      - "biome.json"
+      - ".gitignore"
+      - "scripts/**"
+      - ".claude/skills/**"
+      - ".vibe/skills/**"
+  push:
+    branches: [main]
+    paths:
+      - ".agents/skills/setup-the-repo/**"
+      - ".github/workflows/verify-setup.yml"
+      - "package.json"
+      - "bun.lock"
+      - "tsconfig*.json"
+      - "tsdown.config.ts"
+      - "biome.json"
+      - ".gitignore"
+      - "scripts/**"
+      - ".claude/skills/**"
+      - ".vibe/skills/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read # check this repository out
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-setup:
+    name: Verify setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # No bun-version: the action reads packageManager from package.json, where the pin lives.
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      # No bun install in this checkout: verify.ts and setup.ts import only Bun and Node builtins,
+      # and every scaffold installs its own dependencies.
+      - name: Scaffold and check every Archetype
+        run: bun run verify:setup

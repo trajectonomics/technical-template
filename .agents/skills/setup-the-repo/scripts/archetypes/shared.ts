@@ -181,3 +181,6 @@ export function commonWrites(
 
 /** The template ADR that every Archetype replaces. */
 export const TEMPLATE_ADR = "docs/adr/0001-template-architecture-decisions.md"
+
+/** The template-only workflow that proves this skill still scaffolds a working repository. */
+export const SETUP_VERIFY_WORKFLOW = ".github/workflows/verify-setup.yml"

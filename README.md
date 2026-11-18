@@ -10,7 +10,7 @@ The official starter repository template for technical packages, libraries, and 
 - **Dual ESM + CJS Output**: Powered by [`tsdown`](https://github.com/sxzz/tsdown) with full `.d.ts` and `.d.mts` declaration generation.
 - **Strict Verification Pipeline**: Biome linting and formatting (with strict file line ceilings and cognitive complexity limits), strict TypeScript compilation with `isolatedDeclarations`, tests via `bun test`, plus package export verification via [`publint`](https://publint.dev) and [`@arethetypeswrong/cli`](https://github.com/arethetypeswrong/arethetypeswrong).
 - **Automated Semver & Releases**: Git-tag-driven version computation (`scripts/version.ts`), automated conventional commit PR title validation, and GitHub Actions publishing workflow.
-- **The Whole CI Contract**: A new repository starts current, not with a copy of the rules. `.github/workflows/` carries all three shared callers — `ci.yml`, `pr-title.yml` and `drift.yml` — each a few lines calling a reusable workflow in [`trajectonomics/cicd`](https://github.com/trajectonomics/cicd) at `v1`. The third one is a weekly drift check that opens one issue when the `@trajectonomics/tooling` pin falls behind `latest` or the Biome config keeps rules of its own.
+- **The Whole CI Contract**: A new repository starts current, not with a copy of the rules. `.github/workflows/` carries all three shared callers — `ci.yml`, `pr-title.yml` and `drift.yml` — each a few lines calling a reusable workflow in [`trajectonomics/cicd`](https://github.com/trajectonomics/cicd) at `v1`. The third one is a weekly drift check that opens one issue when the `@trajectonomics/tooling` pin falls behind `latest` or the Biome config keeps rules of its own. A fourth file, `verify-setup.yml`, is template-only: it runs `bun run verify:setup` on the pull requests that can change a scaffold, and setup deletes it from every generated repository, so a new repository keeps the three callers and nothing else.
 - **Domain Modeling & ADRs**: Pre-structured `GLOSSARY.md`, Architecture Decision Records (`docs/adr/`), and agent operational guides (`docs/agents/`).
 
 ---
@@ -87,7 +87,7 @@ Setup checks that it can proceed before changing anything. On `main` or `master`
 | Script | Command | Purpose |
 | --- | --- | --- |
 | `bun run setup` | `bun .agents/skills/setup-the-repo/scripts/setup.ts` | Interactive repository bootstrap wizard |
-| `bun run verify:setup` | `bun .agents/skills/setup-the-repo/scripts/verify.ts` | Scaffold every Archetype in a throwaway directory and run its checks (needs network, not part of CI) |
+| `bun run verify:setup` | `bun .agents/skills/setup-the-repo/scripts/verify.ts` | Scaffold every Archetype in a throwaway directory and run its checks (needs network; CI runs it in `verify-setup.yml`) |
 | `bun run check` | Lint + Typecheck + Test + Build + Package Lint | Full CI verification pass |
 | `bun run test` | `bun test ./src ./scripts ./.agents/skills/setup-the-repo/scripts` | Run test suite with Bun test runner, including the setup logic |
 | `bun run typecheck` | `tsc -p tsconfig.json && tsc -p tsconfig.test.json` | Strict TypeScript typecheck |
