@@ -65,6 +65,10 @@ function branchOf(cwd: string): string {
 	return run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd)
 }
 
+/** The instruction a generated AGENTS.md must keep: where a Factory Run reads its runbook. */
+const FACTORY_RUNS_COMMAND =
+	"gh api repos/trajectonomics/factory/contents/docs/dispatcher-runbook.md"
+
 /**
  * Proves the installed command runs: the file `bin` names exists, is executable, and answers
  * `--help` and `--version` under both runtimes the generated package claims.
@@ -128,6 +132,14 @@ function scaffold(scenario: Scenario, source: string, base: string): string {
 		if (existsSync(join(dir, path))) {
 			throw new Error(`setup did not remove ${path}`)
 		}
+	}
+	// A generated AGENTS.md must still say where a Factory Run reads its instructions.
+	const agents = readFileSync(join(dir, "AGENTS.md"), "utf8")
+	if (!agents.includes("## Factory Runs") || !agents.includes(FACTORY_RUNS_COMMAND)) {
+		throw new Error("the generated AGENTS.md lost the Factory Runs rule and its runbook command")
+	}
+	if (agents.includes("/setup-the-repo")) {
+		throw new Error("the generated AGENTS.md still names the deleted setup-the-repo skill")
 	}
 	run(["bun", "install", "--frozen-lockfile"], dir, LONG)
 	run(["bun", "run", "check"], dir, LONG)

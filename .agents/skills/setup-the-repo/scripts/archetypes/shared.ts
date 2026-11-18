@@ -1,6 +1,7 @@
 import { glossaryContent } from "../terms"
 import { publishChecklist } from "../publish-guide"
-import type { PackageJson, PlanInput } from "../types"
+import type { PackageJson, PlanInput, SetupAnswers } from "../types"
+import { SetupError } from "../types"
 
 /** Serializes a JSON file the way Biome formats it. */
 export function json(value: unknown): string {
@@ -96,25 +97,65 @@ ${publishLine}---
 `
 }
 
+/** The heading that marks the template's single-use setup checklist. */
+const CHECKLIST_HEADING = "## Checklist When Instantiating a New Repo"
+
+/** The failure for a template AGENTS.md and the generator that rewrites it drifting apart. */
+function templateDrift(reason: string): SetupError {
+	return new SetupError(
+		"TEMPLATE_AGENTS_DRIFT",
+		`The template's AGENTS.md and the setup generator are out of step, so the generated file cannot be built: ${reason}. Make the template and .agents/skills/setup-the-repo agree again.`,
+	)
+}
+
+/** Replaces one template text, or fails saying what the template lost. */
+function replaceTemplate(
+	content: string,
+	pattern: RegExp,
+	replacement: string,
+	reason: string,
+): string {
+	if (!pattern.test(content)) throw templateDrift(reason)
+	return content.replace(pattern, () => replacement)
+}
+
+/** Puts the repository answers where the checklist was, keeping every section below it. */
+function replaceChecklist(content: string, answers: SetupAnswers): string {
+	const start = content.indexOf(CHECKLIST_HEADING)
+	if (start < 0) throw templateDrift("it no longer carries the setup checklist")
+	const next = content.indexOf("\n## ", start)
+	const end = next < 0 ? content.length : next + 1
+	const information = `## Repository Information\n\n- Repository: https://github.com/${answers.repoName}\n- Package: \`${answers.packageName}\`\n\n`
+	return `${content.slice(0, start)}${information}${content.slice(end)}`
+}
+
 /** The AGENTS.md the generated repository keeps; `rule4` replaces the Bun rule. */
 export function agentsContent(input: PlanInput, rule4?: string): string {
 	const answers = input.answers
 	const original = input.snapshot.files["AGENTS.md"]
-	if (!original) throw new Error("The template snapshot has no AGENTS.md.")
-	let content = original.replace(
+	if (!original) throw templateDrift("the template snapshot has no AGENTS.md")
+	let content = replaceTemplate(
+		original,
 		/Instructions for AI coding agents working in `[^`]*` repositories instantiated from this template\./,
 		`Instructions for AI coding agents in \`${answers.repoName}\` (\`${answers.packageName}\`).`,
+		"it no longer carries the intro line",
 	)
 	if (rule4) {
-		content = content.replace(
+		content = replaceTemplate(
+			content,
 			/4\. Bun only: `bun install`, `bun test`, `bun run <script>`\. Do not add npm\/pnpm\/yarn lockfiles\./,
 			`4. ${rule4}`,
+			"it no longer carries rule 4",
 		)
 	}
-	return content.replace(
-		/## Checklist When Instantiating a New Repo[\s\S]*$/,
-		`## Repository Information\n\n- Repository: https://github.com/${answers.repoName}\n- Package: \`${answers.packageName}\`\n`,
+	// Setup deletes the skill and its script, so the generated file must not name them.
+	content = replaceTemplate(
+		content,
+		/^- \*\*Bootstrap Skill \(`setup-the-repo`\)\*\*: .*\n/m,
+		"",
+		"it no longer carries the bootstrap bullet",
 	)
+	return replaceChecklist(content, answers)
 }
 
 /** The ADR every single-package Archetype records. */

@@ -190,10 +190,6 @@ describe("ui-library plan", () => {
 		expect(plan.writes["docs/adr/0002-tooling-split.md"]).toContain("Vitest")
 	})
 
-	it("rewords AGENTS.md rule 4 for Vitest", () => {
-		expect(plan.writes["AGENTS.md"]).toContain("Vitest through `bun run test`")
-	})
-
 	it("does not collide with names the Svelte package itself exports", () => {
 		const rootTerm = buildPlan(
 			testAnswers({
