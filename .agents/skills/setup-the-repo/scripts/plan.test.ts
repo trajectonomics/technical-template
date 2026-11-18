@@ -22,11 +22,13 @@ describe("buildPlan", () => {
 	it.each(ARCHETYPES)("deletes only files the template ships for %s", (archetype) => {
 		// A delete for a missing file silently succeeds (`rmSync` runs with `force`), so a
 		// list naming what the template does not ship is a rule that cannot fail.
-		const plan = buildPlan(
-			testAnswers({ archetype, enablePublish: false, storybook: true }),
-			snapshot,
-		)
-		for (const path of plan.deletes) expect(existsSync(join(process.cwd(), path))).toBe(true)
+		for (const enablePublish of [false, true]) {
+			const plan = buildPlan(
+				testAnswers({ archetype, enablePublish, storybook: true }),
+				snapshot,
+			)
+			for (const path of plan.deletes) expect(existsSync(join(process.cwd(), path))).toBe(true)
+		}
 	})
 
 	it.each(ARCHETYPES)("does not mention Entity for %s unless the term is Entity", (archetype) => {
